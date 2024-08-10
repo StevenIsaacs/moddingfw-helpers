@@ -1862,12 +1862,15 @@ $.define _help
 $${_macro}
   Run the initialization for the segment. This is designed to be called
   some time after the segment has been loaded. This is useful when this
-  segment uses variables from other segments which haven't been loaded.
+  segment uses variables from other segments which haven't yet been loaded
+  or the segment which is using this segment.
+  Parameters:
+    1 = The name to use to establish context for this segment.
 $.endef
 help-$${_macro} := $$(call _help)
 $$(call Add-Help,$${_macro})
 $.define $${_macro}
-$$(call Enter-Macro,$$(0),$$(1))
+$$(call Enter-Macro,$$(0),Context=$$(1))
 $$(call Info,Initializing $(1).)
 $$(call Exit-Macro)
 $.endef
