@@ -2342,7 +2342,7 @@ ${_macro}
   Only the first call to Sticky for a given variable will be accepted.
   Additional calls will produce a redefinition error.
 
-  Sticky variables are read only in a sub-make (MAKELEVEL != 0).
+  Sticky variables are read-only in a sub-make (MAKELEVEL != 0).
   Parameters:
     1 = Variable name[=<value>]
     2 = Optional default value.
