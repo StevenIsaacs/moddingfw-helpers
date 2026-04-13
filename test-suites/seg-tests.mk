@@ -24,9 +24,7 @@ $(call Add-Help-Section,SegTestHelpers,Segment testing helpers.)
 _macro := Save-Seg-Lists
 define _help
 ${_macro}
-  Save segment related lists so that tests which modify these lists will not
-  affect other tests. The helper variables SegPaths and SegUNs are reset so
-  that prior tests will not affect the segment tests.
+  Save segment related lists so that tests which modify these lists will not affect other tests. The helper variables SegPaths and SegUNs are reset so that prior tests will not affect the segment tests.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
@@ -42,9 +40,7 @@ endef
 _macro := Reset-Seg-Lists
 define _help
 ${_macro}
-  The helper variables SegPaths and SegUNs are reset so that prior tests will
-  not affect the segment tests. NOTE: This macro should be used only after
-  the lists have been saved using Save-Seg-Lists.
+  The helper variables SegPaths and SegUNs are reset so that prior tests will not affect the segment tests. NOTE: This macro should be used only after the lists have been saved using Save-Seg-Lists.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
@@ -58,9 +54,7 @@ endef
 _macro := Restore-Seg-Lists
 define _help
 ${_macro}
-  Restore previously saved segment related lists so that tests which modify
-  these lists will not affect other tests. The segments used by the test are
-  also undefined.
+  Restore previously saved segment related lists so that tests which modify these lists will not affect other tests. The segments used by the test are also undefined.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
