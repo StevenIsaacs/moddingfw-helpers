@@ -1635,7 +1635,7 @@ define ${_macro}
       $(eval -include ${__segf})
       $(if ${${__sun}.SegID},
       ,
-        $(call Attention,Loaded non-ModFW format segment.)
+        $(call Attention,Loaded non-ModdingFW format segment.)
         $(call __Init-Last-Segment)
       )
     )
@@ -2248,7 +2248,7 @@ $(call Verbose,In segment:${SegUN})
 $(call Add-Help-Section,ShellHelpers,Helper functions for shell scripts .)
 
 _var := HELPER_FUNCTIONS
-${_var} := ${${SegUN}.SegP}/modfw-functions.sh
+${_var} := ${${SegUN}.SegP}/moddingfw-functions.sh
 define _help
 ${_var} = ${${_var}}
   Helper functions for shell scripts.
