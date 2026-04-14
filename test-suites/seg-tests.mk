@@ -688,14 +688,14 @@ define ${.TestUN}
 
   $(call Test-Info,Full segment path (no find).)
   $(call Expect-Vars,\
-    test-segs.ts3.SegP=${WorkingPath}/test-segs\
+    test-segs.ts3.SegP=${CorePath}/test-segs\
     test-segs.ts3.SegF=test-segs/ts3.mk\
     )
 
   $(call Expect-Message,\
-    Segment ${WorkingPath}/${test-segs.ts3.SegF} is already loaded.)
+    Segment ${CorePath}/${test-segs.ts3.SegF} is already loaded.)
   $(call Expect-No-Error)
-  $(call Use-Segment,${WorkingPath}/${test-segs.ts3.SegF})
+  $(call Use-Segment,${CorePath}/${test-segs.ts3.SegF})
   $(call Verify-No-Error)
   $(call Verify-Message)
 

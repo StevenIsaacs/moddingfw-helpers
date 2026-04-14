@@ -192,7 +192,7 @@ endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
 
-_var := WorkingPath
+_var := CorePath
 ${_var} := $(realpath $(dir $(word 1,${MAKEFILE_LIST})))
 define _help
 ${_var} = ${${_var}}
@@ -201,26 +201,26 @@ endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
 
-_var := WorkingDir
-${_var} := $(notdir ${WorkingPath})
+_var := CoreDir
+${_var} := $(notdir ${CorePath})
 define _help
 ${_var} = ${${_var}}
-  This is the name of the last directory in WorkingPath.
+  This is the name of the last directory in CorePath.
 endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
 
-_var := WorkingVar
-${_var} := _$(subst -,_,$(WorkingDir))
+_var := CoreVar
+${_var} := _$(subst -,_,$(CoreDir))
 define _help
 ${_var} = ${${_var}}
-  This is a bash compatible variable name for WorkingDir.
+  This is a bash compatible variable name for CoreDir.
 endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
 
 _var := HiddenPath
-${_var} := ${WorkingPath}/.${WorkingDir}
+${_var} := ${CorePath}/.${CoreDir}
 define _help
 ${_var} = ${${_var}}
   The path to the directory containing hidden files.
@@ -229,7 +229,7 @@ help-${_var} := $(call _help)
 $(call Add-Help,${_var})
 
 _var := TmpDir
-${_var} := ${WorkingDir}
+${_var} := ${CoreDir}
 define _help
 ${_var} = ${${_var}}
   The name of the directory where temporary files such as log files and help messages are written to.
@@ -270,7 +270,7 @@ $(call Add-Help,${_var})
 _var := LOG_FILE
 ${_var} ?= ${_var}
 define _help
-${_var} = ${WorkingDir}
+${_var} = ${CoreDir}
   Use this variable on the make command line to enable message logging and set the name of the log file in the log file directory.
 endef
 help-${_var} := $(call _help)
@@ -894,7 +894,7 @@ define ${_macro}
       $(if $(filter ${SubMake},${True}),
         $(file >>${LogFile},++++++++ MAKELEVEL = ${MAKELEVEL} ++++++++)
       ,
-        $(file >${LogFile},++++++++ ${WorkingDir} log: $(shell date))
+        $(file >${LogFile},++++++++ ${CoreDir} log: $(shell date))
       )
     ,
       $(call Attention,LOG_FILE is undefined -- no log file.)
@@ -913,7 +913,7 @@ define ${_macro}
     $(if $(filter ${SubMake},${True}),
       $(file >>${LogFile},-------- MAKELEVEL = ${MAKELEVEL} --------)
     ,
-      $(file >${LogFile},-------- ${WorkingDir} log: $(shell date))
+      $(file >${LogFile},-------- ${CoreDir} log: $(shell date))
     )
   )
   $(eval LogFile :=)

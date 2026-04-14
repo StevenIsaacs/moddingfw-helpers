@@ -15,8 +15,8 @@ include helpers.mk
 
 $(call Enable-Log-File)
 
-$(call Info,WorkingPath: ${WorkingPath})
-$(call Info,WorkingVar: ${WorkingVar})
+$(call Info,CorePath: ${CorePath})
+$(call Info,CoreVar: ${CoreVar})
 
 $(call Use-Segment,test-helpers)
 
