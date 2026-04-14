@@ -42,11 +42,9 @@ Usage: make [<option>=<value> ...] [<goal> [<goal> ...]]
 
 NOTE: This help is displayed if no goal is specified.
 
-This make file is used to run test suites for testing the helpers and the
-test helpers.
+This make file is used to run test suites for testing the helpers and the test helpers.
 
-The sticky variable CASES defines which tests are run. See help-CASES for more
-information.
+The sticky variable CASES defines which tests are run. See help-CASES for more information.
 
 Use the test goal. See help-test-helpers for more information.
 
