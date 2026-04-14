@@ -1827,7 +1827,9 @@ $(call Add-Help-Section,Goals,For checking and handling make goals.)
 _macro := Resolve-Help-Goals
 define _help
 ${_macro}
-  This scans the goals for references to help and then insures the corresponding segment is loaded. This should be called only after all other segments have been loaded (Use-Segment) to avoid problems with variable declaration sequence dependencies. NOTE: All segments for which help is referenced must be in the segment search path (Add-Segment-Path).
+  This scans the goals for references to help and then insures the corresponding segment is loaded. This should be called only after all other segments have been loaded (Use-Segment) to avoid problems with variable declaration sequence dependencies.
+
+  NOTE: All segments for which help is referenced must be in the segment search path (Add-Segment-Path).
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
@@ -2596,6 +2598,15 @@ $(call Add-Help,${__goal})
 ${__goal}%:
 > @echo '$*=$($*)'
 
+_var := TermCols
+${_var} := $(shell tput cols)
+define _help
+${_var} = ${${_var}}
+  This is the number of columns in the terminal. This is used for formatting help messages.
+endef
+help-${_var} := $(call _help)
+$(call Add-Help,${_var})
+
 __goal := help-
 define _help
 ${__goal}<sym>
@@ -2611,7 +2622,7 @@ ${__goal}%:
       $(foreach _h,${$*.MoreHelpList},\
         $(file >>${TmpPath}/help-$*,==== ${__h} ====)\
         $(file >>${TmpPath}/help-$*,${${__h}}))))
-> less ${TmpPath}/help-$*
+> fmt -s -w $(TermCols) ${TmpPath}/help-$* | less
 > rm ${TmpPath}/help-$*
 
 __goal := origin-
