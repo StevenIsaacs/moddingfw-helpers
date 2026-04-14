@@ -2622,8 +2622,8 @@ ${__goal}%:
       $(foreach _h,${$*.MoreHelpList},\
         $(file >>${TmpPath}/help-$*,==== ${__h} ====)\
         $(file >>${TmpPath}/help-$*,${${__h}}))))
-> fmt -s -w $(TermCols) ${TmpPath}/help-$* | less
-> rm ${TmpPath}/help-$*
+> @fmt -s -w $(TermCols) ${TmpPath}/help-$* | less
+> @rm ${TmpPath}/help-$*
 
 __goal := origin-
 define _help
