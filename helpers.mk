@@ -196,7 +196,9 @@ _var := CorePath
 ${_var} := $(realpath $(dir $(word 1,${MAKEFILE_LIST})))
 define _help
 ${_var} = ${${_var}}
-  This is the path to the directory from which the makefile was run. In other words this is the path to the directory containing the first file in MAKEFILE_LIST.
+  This is the path to the directory containing the top level makefile. In other words this is the path to the directory containing the first file in MAKEFILE_LIST.
+
+  NOTE: If this is mounted in a container, mount as a read only volume and should not be written to.
 endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
@@ -219,8 +221,37 @@ endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
 
+_var := ContextPath
+${_var} := $(realpath $(dir $(word 1,${MAKEFILE_LIST})))
+define _help
+${_var} = ${${_var}}
+  This is the path to the directory from which make (the Core)was run.
+
+  NOTE: If this is mounted in a container, mount as a read/write volume.
+endef
+help-${_var} := $(call _help)
+$(call Add-Help,${_var})
+
+_var := ContextDir
+${_var} := $(notdir ${ContextPath})
+define _help
+${_var} = ${${_var}}
+  This is the name of the last directory in ContextPath.
+endef
+help-${_var} := $(call _help)
+$(call Add-Help,${_var})
+
+_var := ContextVar
+${_var} := _$(subst -,_,$(ContextDir))
+define _help
+${_var} = ${${_var}}
+  This is a bash compatible variable name for ContextDir.
+endef
+help-${_var} := $(call _help)
+$(call Add-Help,${_var})
+
 _var := HiddenPath
-${_var} := ${CorePath}/.${CoreDir}
+${_var} := ${ContextPath}/.${ContextDir}
 define _help
 ${_var} = ${${_var}}
   The path to the directory containing hidden files.
@@ -229,7 +260,7 @@ help-${_var} := $(call _help)
 $(call Add-Help,${_var})
 
 _var := TmpDir
-${_var} := ${CoreDir}
+${_var} := ${ContextDir}
 define _help
 ${_var} = ${${_var}}
   The name of the directory where temporary files such as log files and help messages are written to.
@@ -268,9 +299,9 @@ help-${_var} := $(call _help)
 $(call Add-Help,${_var})
 
 _var := LOG_FILE
-${_var} ?= ${_var}
+${_var} ?=
 define _help
-${_var} = ${CoreDir}
+${_var} = ${ContextDir}
   Use this variable on the make command line to enable message logging and set the name of the log file in the log file directory.
 endef
 help-${_var} := $(call _help)
@@ -280,6 +311,7 @@ _var := LogFile
 ${_var} :=
 define _help
 ${_var} = ${${_var}}
+  The full path to the log file. This is set by the Enable-Log-File macro when LOG_FILE is set.
 endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
@@ -295,7 +327,7 @@ endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
 
-_empty :=
+__empty :=
 _var := Space
 ${_var} := ${__empty} ${__empty}
 define _help
@@ -440,7 +472,7 @@ help-${_var} := $(call _help)
 $(call Add-Help,${_var})
 
 _var := QUIET
-${_var} ?= 1
+${_var} ?=
 define _help
 ${_var} = ${_var}
   Set this variable on the command line to suppress console output. If QUIET is not empty then all messages except error messages are suppressed. They are still added to the message list and can still be displayed using the display-messages goal.
@@ -894,7 +926,7 @@ define ${_macro}
       $(if $(filter ${SubMake},${True}),
         $(file >>${LogFile},++++++++ MAKELEVEL = ${MAKELEVEL} ++++++++)
       ,
-        $(file >${LogFile},++++++++ ${CoreDir} log: $(shell date))
+        $(file >${LogFile},++++++++ ${ContextDir} log: $(shell date))
       )
     ,
       $(call Attention,LOG_FILE is undefined -- no log file.)
@@ -913,7 +945,7 @@ define ${_macro}
     $(if $(filter ${SubMake},${True}),
       $(file >>${LogFile},-------- MAKELEVEL = ${MAKELEVEL} --------)
     ,
-      $(file >${LogFile},-------- ${CoreDir} log: $(shell date))
+      $(file >${LogFile},-------- ${ContextDir} log: $(shell date))
     )
   )
   $(eval LogFile :=)
@@ -2566,7 +2598,7 @@ endef
 help-${__goal} := $(call _help)
 $(call Add-Help,${__goal})
 
-ifneq (${LOG_FILE},)
+ifneq (${LogFile},)
 ${__goal}: ${LogFile}
 > less $<
 else
@@ -2622,7 +2654,7 @@ ${__goal}%:
       $(foreach _h,${$*.MoreHelpList},\
         $(file >>${TmpPath}/help-$*,==== ${__h} ====)\
         $(file >>${TmpPath}/help-$*,${${__h}}))))
-> @fmt -s -w $(TermCols) ${TmpPath}/help-$* | less
+> @fmt -s -w ${TermCols} ${TmpPath}/help-$* | less
 > @rm ${TmpPath}/help-$*
 
 __goal := origin-
