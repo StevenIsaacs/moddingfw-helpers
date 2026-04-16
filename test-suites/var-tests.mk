@@ -244,7 +244,7 @@ define ${.TestUN}
   $(call Expect-Vars,_v=ABCDEF)
 
   $(eval _v := $(call To-Upper,"A123neq&bCD"))
-  $(call Expect-Vars,_v=A123neq&BCD)
+  $(call Expect-Vars,_v=A123NEQ&BCD)
 
   $(call End-Test)
   $(call Exit-Macro)
