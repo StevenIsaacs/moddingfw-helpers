@@ -748,8 +748,6 @@ define ${_macro}
   $(call Exit-Macro)
 endef
 
-MAKEFLAGS += ${__V}
-
 _macro := Debug
 define _help
 ${_macro}
@@ -766,7 +764,7 @@ ifneq (${DEBUG},)
 define ${_macro}
   $(call Log-Message,dbug,$(1))
 endef
-__V:=--debug=vp --warn-undefined-variables
+MAKEFLAGS += --debug=vp --warn-undefined-variables
 endif
 
 _macro := Step
