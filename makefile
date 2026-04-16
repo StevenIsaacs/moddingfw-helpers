@@ -1,15 +1,19 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Test the helpers.
 #----------------------------------------------------------------------------
-#VERBOSE=1
 #DEBUG=1
 
 TmpTestPath := ${CURDIR}/tmp/test-helpers
 LOG_PATH := ${TmpTestPath}/log
+LOG_FILE := test-helpers.log
 
 STICKY_PATH := ${TmpTestPath}/sticky
 
 MakeTL := Run the test suites to test the helpers.
+
+# VERBOSE is required because some tests verify verbose output. If VERBOSE is
+# not set, the test output is not verbose and the tests fail.
+VERBOSE=1
 
 include helpers.mk
 
