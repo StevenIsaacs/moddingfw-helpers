@@ -118,6 +118,15 @@ endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
 
+_var := Exit_On_Error
+${_var} :=
+define _help
+${_var}
+  When not empty execution will exit when an error is reported. This is the same as STOP_ON_ERROR but is ignored when testing.
+endef
+help-${_var} := $(call _help)
+$(call Add-Help,${_var})
+
 $(call Add-Help-Section,Vars,Helper variables.)
 
 _var := .RECIPEPREFIX
