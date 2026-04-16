@@ -53,10 +53,10 @@ ${_macro}
 endef
 define ${_macro}
   $(eval help-${SegID}.$(1) := ---- $(2) ----)
-  $(if ${${SegID}.HelpL},
-    $(eval ${SegID}.HelpL += ${SegID}.$(1))
+  $(if ${${SegID}.SegHL},
+    $(eval ${SegID}.SegHL += ${SegID}.$(1))
   ,
-    $(eval ${SegID}.HelpL := ${SegID}.$(1))
+    $(eval ${SegID}.SegHL := ${SegID}.$(1))
   )
 endef
 help-${_macro} := $(call _help)
@@ -69,10 +69,10 @@ ${_macro}
     1 = The name of the variable or macro to declare help for.
 endef
 define ${_macro}
-  $(if ${${SegID}.HelpL},
-    $(eval ${SegID}.HelpL += $(1))
+  $(if ${${SegID}.SegHL},
+    $(eval ${SegID}.SegHL += $(1))
   ,
-    $(eval ${SegID}.HelpL := $(1))
+    $(eval ${SegID}.SegHL := $(1))
   )
 endef
 help-${_macro} := $(call _help)
@@ -93,7 +93,7 @@ endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
-$(foreach _h,${$(1).HelpL},
+$(foreach _h,${$(1).SegHL},
 
 ${help-${_h}})
 endef
@@ -1208,7 +1208,7 @@ endef
 $(call Add-Help-Section,SegManagement,For managing segments.)
 
 _var := SegAttributes
-${_var} := SegID UserSegID SegUN Seg SegP SegD SegF SegV SegTL
+${_var} := SegID UserSegID SegUN Seg SegP SegD SegF SegV SegTL SegHL
 define _help
 ${_var} = ${${_var}}
   Each makefile segment is managed using a set of attributes. The context for a given segment is prefixed by its unique name <segun>. The current context has no prefix.
@@ -1218,8 +1218,6 @@ ${_var} = ${${_var}}
       The ID of the segment which used this segment. This is basically the index in MAKEFILE_LIST for the using segment.
     SegUN or <segun>.SegUN
       The pseudo unique name for the segment <segun>. This is then used as the key to access the attributes for a given segment. See help-Path-To-UN.
-    SegID or <segun>.SegID
-      The ID for the segment. This is basically the index in MAKEFILE_LIST for the segment.
     Seg or <segun>.Seg
       The segment name.
     SegV or <segun>.SegV
@@ -1232,6 +1230,8 @@ ${_var} = ${${_var}}
       The path and name of the makefile segment. This can be used as part of a dependency list.
     SegTL or <segun>.SegTL
       A one line description (tag line) for the segment.
+    SegHL or <segun>.SegHL
+      A multi-line description (help) for the segment.
 endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
@@ -1601,8 +1601,10 @@ define ${_macro}
   $(call Attention,Setting context for SegID $(1))
   $(eval __un := $(call Get-Segment-UN,$(1)))
   $(call Attention,SegID $(1) UN:${__un})
+  $(call Verbose,Setting context for segment: ${__un})
   $(foreach __att,${SegAttributes},
     $(eval ${__att} := ${${__un}.${__att}})
+    $(call Verbose,Setting: ${__att} = ${${__att}})
   )
 
   $(call Exit-Macro)
@@ -1629,6 +1631,7 @@ define ${_macro}
     $(eval ${FirstSegUN}.SegF := $(call Get-Segment-File,1))
     $(eval ${FirstSegUN}.SegV := $(call To-Shell-Var,${FirstSegUN}))
     $(eval ${FirstSegUN}.SegTL := $(1))
+    $(eval ${FirstSegUN}.SegHL := File: ${${FirstSegUN}.SegF})
     $(call Set-Segment-Context,1)
   ,
     $(eval __mf := $(notdir $(word ${__pc},${MAKEFILE_LIST})))
@@ -1660,6 +1663,7 @@ define ${_macro}
   $(eval ${LastSegUN}.SegF := $(call Last-Segment-File))
   $(eval ${LastSegUN}.SegV := $(call To-Shell-Var,${LastSegUN}))
   $(eval ${LastSegUN}.SegTL := $(strip $(1)))
+  $(eval ${LastSegUN}.SegHL := File: ${${LastSegUN}.SegF})
   $(call Exit-Macro)
 endef
 

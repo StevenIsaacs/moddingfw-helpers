@@ -14,6 +14,7 @@ MakeTL := Run the test suites to test the helpers.
 # VERBOSE is required because some tests verify verbose output. If VERBOSE is
 # not set, the test output is not verbose and the tests fail.
 VERBOSE=1
+MAKEFLAGS += --warn-undefined-variables
 
 include helpers.mk
 
