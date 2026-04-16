@@ -14,35 +14,15 @@ DEFAULT_SUITES_PATH := test-suites
 define _help
 Makefile segment: ${Seg}.mk
 
-This make segment provides test support macros. These are designed to run
-before any goals are processed and when makefile segments are loaded. The
-concept is similar to that of a C preprocessor.
+This make segment provides test support macros. These are designed to run before any goals are processed and when makefile segments are loaded. The concept is similar to that of a C preprocessor.
 
 Definitions:
 Test suite:
-  A collection of tests which are closely related. A test suite should begin
-  by setting up an environment in which the tests are executed. On completion
-  of the tests the environment should then be torn down to avoid corrupting
-  the environment for subsequent test suites or normal development. A test
-  suite should NOT be dependant upon conditions created by any other test
-  suite. HOWEVER, a test suite can require that other test suites pass
-  before running any additional tests. A required test suite is termed a
-  prerequisite or Prereq. If a Prereq test suite did not pass an error is
-  reported and the test run is terminated. This helps avoid cascading failures
-  in a test run. For a test suite Prereqs are specified using the variable
-  <suite>.Prereqs.
+  A collection of tests which are closely related. A test suite should begin by setting up an environment in which the tests are executed. On completion of the tests the environment should then be torn down to avoid corrupting the environment for subsequent test suites or normal development. A test suite should NOT be dependant upon conditions created by any other test suite. HOWEVER, a test suite can require that other test suites pass before running any additional tests. A required test suite is termed a
+  prerequisite or Prereq. If a Prereq test suite did not pass an error is reported and the test run is terminated. This helps avoid cascading failures in a test run. For a test suite Prereqs are specified using the variable <suite>.Prereqs.
 
 Test or test case:
-  A specific test in a test suite. Each test should begin with a setup
-  and end with a teardown. A test should first verify preconditions to ensure
-  the environment has been setup properly for the test and to ensure previous
-  tests have not corrupted the environment. A test should not rely upon
-  conditions from a previous test and should not leave any artifacts to
-  clutter the test environment or confuse subsequent tests. A test should be
-  able to be executed atomically. Like with a test suite, a test can require
-  other test(s) pass beforehand which helps avoid cascading failures. The
-  required tests are termed prerequisite or Prereq tests. For a test Prereqs
-  are specified using the variable <test>.Prereqs.
+  A specific test in a test suite. Each test should begin with a setup and end with a teardown. A test should first verify preconditions to ensure the environment has been setup properly for the test and to ensure previous tests have not corrupted the environment. A test should not rely upon conditions from a previous test and should not leave any artifacts to clutter the test environment or confuse subsequent tests. A test should be able to be executed atomically. Like with a test suite, a test can require other test(s) pass beforehand which helps avoid cascading failures. The required tests are termed prerequisite or Prereq tests. For a test Prereqs are specified using the variable <test>.Prereqs.
 
 Test step:
   A single step in a test. This is reset at the beginning of a test.
@@ -50,47 +30,25 @@ Test step:
 Test context:
   Different contexts <ctx> are defined for a test run. These are:
     Declared
-      A manifest is generated to describe all test suites and tests which have
-      been declared. This is also used to assign IDs to suites and tests.
+      A manifest is generated to describe all test suites and tests which have been declared. This is also used to assign IDs to suites and tests.
     Session
-      A manifest is generated to describe all test suites and tests which were
-      run as part of the session. Statistics for all tests ran in the session
-      are maintained.
+      A manifest is generated to describe all test suites and tests which were run as part of the session. Statistics for all tests ran in the session are maintained.
     Run
-      A manifest is generated to describe all test suites and tests executed in
-      a test run.
+      A manifest is generated to describe all test suites and tests executed in a test run.
     Prereq
-      A manifest is generated to describe all the test suites and tests
-      specified as test prerequisites. This manifest is updated as
-      prerequisites are run. Test results for this context are reset each time
-      a test's prerequisites are run.
+      A manifest is generated to describe all the test suites and tests specified as test prerequisites. This manifest is updated as prerequisites are run. Test results for this context are reset each time a test's prerequisites are run.
     Undo
-      The Undo context is provided so that the FAIL result of the last test
-      step can be undone (using Undo-FAIL). This is useful when testing the
-      test helpers themselves to verify they will issue a FAIL appropriately.
-      NOTE: Only a FAIL can be undone.
+      The Undo context is provided so that the FAIL result of the last test step can be undone (using Undo-FAIL). This is useful when testing the test helpers themselves to verify they will issue a FAIL appropriately. NOTE: Only a FAIL can be undone.
     <suite>
-      This describes a single test suite. The context is referenced using
-      a suite name (SuiteN).
+      This describes a single test suite. The context is referenced using a suite name (SuiteN).
     <test>
-      This describes a single test. The context is referenced using a unique
-      test name (TestUN or .SuiteN.TestN).
+      This describes a single test. The context is referenced using a unique test name (TestUN or .SuiteN.TestN).
 
 The active context:
-  The active context represents the currently running test. This context is
-  used to update all the other contexts. Passing an empty parameter to the
-  context related macros specifies the active context. The active context
-  is initialized by Begin-Test. All active context variables have a dot (.)
-  as the first character.
+  The active context represents the currently running test. This context is used to update all the other contexts. Passing an empty parameter to the context related macros specifies the active context. The active context is initialized by Begin-Test. All active context variables have a dot (.) as the first character.
 
 Manifests:
-  The Session, Prereq and Run contexts are described using a test manifest. In
-  the case of a Session context the manifest details the suites and tests which
-  have been declared. In the case of the Run context the manifest represents
-  the list of suites and tests to be run. In the case of a Prereq context the
-  manifest represents the prereq tests which have been run. The Session
-  manifest is updated as suites are declared. The Run manifest is updated based
-  upon the  contents of the CASES sticky variable. A manifest contains:
+  The Session, Prereq and Run contexts are described using a test manifest. In the case of a Session context the manifest details the suites and tests which have been declared. In the case of the Run context the manifest represents the list of suites and tests to be run. In the case of a Prereq context the manifest represents the prereq tests which have been run. The Session manifest is updated as suites are declared. The Run manifest is updated based upon the  contents of the CASES sticky variable. A manifest contains:
   <ctx>.SuiteC
     The number of test suites.
   <ctx>.SuiteL
@@ -101,9 +59,7 @@ Manifests:
     The list of tests.
 
 Test results:
-  Each contest has a corresponding set of results. Results are referenced
-  using a context name (ctx). Test results are updated at the beginning and
-  end of a test or when a PASS or FAIL is reported. The various attributes are:
+  Each contest has a corresponding set of results. Results are referenced using a context name (ctx). Test results are updated at the beginning and end of a test or when a PASS or FAIL is reported. The various attributes are:
   <ctx>.ID
     An ID number assigned to the context when declared.
   <ctx>.Running
@@ -126,24 +82,13 @@ Test results:
     The list of failed steps.
 
 Test implementation recommendations:
-  For consistency and to help avoid naming conflicts each test suite should
-  be contained in a single makefile segment. The name of the segment ($${SegUN})
-  can then be passed to Declare-Suite to serve as the suite name (SuiteN). This
-  is most important when using Use-Segment to load test suites to avoid loading
-  the same suite more than once. Declare-Test uses .SuiteN as a prefix for
-  naming all of the tests included contained within a suite.
+  For consistency and to help avoid naming conflicts each test suite should be contained in a single makefile segment. The name of the segment ($${SegUN}) can then be passed to Declare-Suite to serve as the suite name (SuiteN). This is most important when using Use-Segment to load test suites to avoid loading the same suite more than once. Declare-Test uses .SuiteN as a prefix for naming all of the tests included contained within a suite.
 
-  Each test in a test suite should be a macro and declared using Declare-Test
-  making it possible for other tests to reference it as a prerequisite. This is
-  most important when tests have prerequisites which are contained in other
-  test suites. A test suite template is provided in suite-template.mk to
-  illustrate this approach.
+  Each test in a test suite should be a macro and declared using Declare-Test making it possible for other tests to reference it as a prerequisite. This is most important when tests have prerequisites which are contained in other test suites. A test suite template is provided in suite-template.mk to illustrate this approach.
 
-  A test should not call another test. Instead, other tests should be listed as
-  prerequisites.
+  A test should not call another test. Instead, other tests should be listed as prerequisites.
 
-  All test suites in a test run should be contained within the same directory
-  pointed to by the command line option SUITES_PATH.
+  All test suites in a test run should be contained within the same directory pointed to by the command line option SUITES_PATH.
 
 endef
 help-${SegID} := $(call _help)
@@ -165,20 +110,13 @@ _var := CASES
 $(call Sticky,${_var},$(call Basenames-In,${SUITES_PATH}/*.mk))
 define _help
 (Sticky) ${_var} = ${${_var}}
-  The list of test cases to run. This defaults to all of the makefile
-  segments in the directory indicated by SUITES_PATH. To use this on the
-  make command line enclose the test suite list in quotes.
-  NOTE: All of the test suites must exist as makefile segments in the
-  SUITES_PATH directory.
-  The make wildcard character "%" is supported. In other words this can be used
-  to match all test names matching the same pattern.
-  Tests in a suite can be limited to one or more tests using the
-  <suite>.<test>[+<test>...] notation.
-  This relies upon each test suite defining a list of available tests. This
-  variable must be named <suite>.TestL.
+  The list of test cases to run. This defaults to all of the makefile segments in the directory indicated by SUITES_PATH. To use this on the make command line enclose the test suite list in quotes. NOTE: All of the test suites must exist as makefile segments in the SUITES_PATH directory.
+
+  The make wildcard character "%" is supported. In other words this can be used to match all test names matching the same pattern.
+
+  Tests in a suite can be limited to one or more tests using the <suite>.<test>[+<test>...] notation. This relies upon each test suite defining a list of available tests. This variable must be named <suite>.TestL.
   Examples:
-    Run all tests in the SUITES_PATH directory. NOTE: This does not change the
-    previously saved sticky value.
+    Run all tests in the SUITES_PATH directory. NOTE: This does not change the previously saved sticky value.
       CASES=""
     Run all tests in suite1 and suite2.
       CASES="suite1 suite2"
@@ -204,8 +142,7 @@ _var := SKIP_PREREQS
 ${_var} :=
 define _help
 ${_var}
-  When not empty prerequisite tests will not be executed. Their corresponding
-  segments are still loaded.
+  When not empty prerequisite tests will not be executed. Their corresponding segments are still loaded.
 endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
@@ -235,11 +172,7 @@ _var := .SuiteN
 ${_var} :=
 define _help
 ${_var}
-  The name of the test suite being initialized or running. This is used to
-  reference suite specific attributes (i.e. establish suite context). This is
-  set by Declare-Suite so context is correct when initializing a test suite.
-  This is also set by Begin-Test so that context is correct for a running test.
-  NOTE: This is expected to equal the segment name of the test suite.
+  The name of the test suite being initialized or running. This is used to reference suite specific attributes (i.e. establish suite context). This is set by Declare-Suite so context is correct when initializing a test suite. This is also set by Begin-Test so that context is correct for a running test. NOTE: This is expected to equal the segment name of the test suite.
 endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
@@ -257,10 +190,7 @@ _var := .TestN
 ${_var} :=
 define _help
 ${_var}
-  The name of the test being declared or running. This is used to
-  reference test specific attributes (i.e. establish test context). This is
-  set by Declare-Test so context is correct when initializing a test.
-  This is also set by Begin-Test so that context is correct for a running test.
+  The name of the test being declared or running. This is used to reference test specific attributes (i.e. establish test context). This is set by Declare-Test so context is correct when initializing a test. This is also set by Begin-Test so that context is correct for a running test.
 endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
@@ -278,11 +208,7 @@ _var := .TestUN
 ${_var} :=
 define _help
 ${_var}
-  The unique name of the test declared or running. The unique name is defined
-  using the suite and test names in a dot format. e.g. .SuiteN.TestN. This is
-  used to reference test specific attributes (i.e. establish test context).
-  This is set by Declare-Test so context is correct when initializing a test.
-  This is also set by Begin-Test so that context is correct for a running test.
+  The unique name of the test declared or running. The unique name is defined using the suite and test names in a dot format. e.g. .SuiteN.TestN. This is used to reference test specific attributes (i.e. establish test context). This is set by Declare-Test so context is correct when initializing a test. This is also set by Begin-Test so that context is correct for a running test.
 endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
@@ -291,8 +217,7 @@ _var := Self
 ${_var} :=
 define _help
 ${_var}
-  Establishes current context. This can be either a test suite or a test.
-  This is used to make it clear when a suite or test is referencing itself.
+  Establishes current context. This can be either a test suite or a test. This is used to make it clear when a suite or test is referencing itself.
 endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
@@ -325,8 +250,7 @@ ${_macro} = $(word 2,$(subst ., ,$(1)))
 _macro := Test-Info
 define _help
 ${_macro}
-  Display a test message in a parsable format. This shows the test number along
-  with the test message.
+  Display a test message in a parsable format. This shows the test number along with the test message.
   Parameters:
     1 = The message to display.
 endef
@@ -339,8 +263,7 @@ endef
 _macro := Mark-Step
 define _help
 ${_macro}
-  Display a message for the current step to mark the beginning of a series
-  of related steps.
+  Display a message for the current step to mark the beginning of a series of related steps.
   Parameters:
     1 = The message for the test step.
 endef
@@ -357,8 +280,7 @@ define _help
 ${_macro}
   Display the result of a test step.
   Parameters:
-    1 = A four character prefix for the result message. Typically this is
-        PASS or FAIL since this is called by those macros.
+    1 = A four character prefix for the result message. Typically this is PASS or FAIL since this is called by those macros.
     2 = The message for the result.
 endef
 help-${_macro} := $(call _help)
@@ -402,8 +324,7 @@ $(call Add-Help-Section,Results,Recording and handling test results.)
 _macro := Undo-FAIL
 define _help
 ${_macro}
-  Undo the previous step if it FAILED and instead record it as a PASS. This is
-  useful for verifying conditions which are expected to report a failure.
+  Undo the previous step if it FAILED and instead record it as a PASS. This is useful for verifying conditions which are expected to report a failure.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
@@ -421,11 +342,7 @@ _var := ExpectedResultsL
 ${_var} :=
 define _help
 ${_var}
-  The list of PASS or FAIL results to verify. Each call to PASS or FAIL
-  advances to the next result in the list. The results are verified in the
-  order in which they are specified in this list.
-  e.g. FAIL PASS PASS FAIL PASS Expects a FAIL followed by a PASS followed by
-  two PASSEs and finally a FAIL.
+  The list of PASS or FAIL results to verify. Each call to PASS or FAIL advances to the next result in the list. The results are verified in the order in which they are specified in this list. e.g. FAIL PASS PASS FAIL PASS Expects a FAIL followed by a PASS followed by two PASSEs and finally a FAIL.
 endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
@@ -433,9 +350,8 @@ $(call Add-Help,${_var})
 _macro := Verify-Result
 define _help
 ${_macro}
-  This is called by either PASS or FAIL when ExpectedResultL is not active.
-  As each result is verified it is removed from the head of the list. The
-  message for the result is logged.
+  This is called by either PASS or FAIL when ExpectedResultL is not active. As each result is verified it is removed from the head of the list. The message for the result is logged.
+
   NOTE: If the expected results list is active then an error is emitted.
   Parameters:
     1 = The step result -- either PASS or FAIL.
@@ -464,8 +380,7 @@ endef
 _macro := PASS
 define _help
 ${_macro}
-  Display a test passed message. If results are expected the PASS result is
-  verified using Verify-Result.
+  Display a test passed message. If results are expected the PASS result is verified using Verify-Result.
   Parameters:
     1 = The message to display.
 endef
@@ -483,16 +398,13 @@ endef
 _macro := FAIL
 define _help
 ${_macro}
-  Display a test failed message. This also flags the current test and suite
-  as having failed. If results are expected the FAIL result is verified using
-  Verify-Result.
+  Display a test failed message. This also flags the current test and suite as having failed. If results are expected the FAIL result is verified using Verify-Result.
   Command line options:
     PAUSE_ON_FAIL
       When not empty pause test execution.
   Parameters:
     1 = The message to display.
-    2 = When not empty this parameter signals that the tests should be
-        terminated. This is done by calling Signal-Error.
+    2 = When not empty this parameter signals that the tests should be terminated. This is done by calling Signal-Error.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
@@ -517,8 +429,7 @@ _var := Differences
 ${_var} := 1
 define _help
 ${_var}
-  This variable contains the list of detected differences between expected
-  values and actual values.
+  This variable contains the list of detected differences between expected values and actual values.
 endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
@@ -530,9 +441,7 @@ $(call Add-Help,${_var})
 _macro := Set-Expected-Results
 define _help
 ${_macro}
-  Sets a list of test step results to be verified when PASS or FAIL are called.
-  This is useful when a FAIL result is actually an indication that a test
-  step passed. See
+  Sets a list of test step results to be verified when PASS or FAIL are called. This is useful when a FAIL result is actually an indication that a test step passed.
   Parameters:
     1 = The list of PASS and FAIL results to verify.
 endef
@@ -545,17 +454,21 @@ endef
 _macro := Expect-Vars
 define _help
 ${_macro}
-  Steps through a list of <var>:<value> pairs and verifies the <var> has a
-  value equal to <value>. PASS or FAIL messages are emitted accordingly.
+  Steps through a list of <var>:<value> pairs and verifies the <var> has a value equal to <value>. PASS or FAIL messages are emitted accordingly.
   Parameters:
-    1 = The list of <var>:<value> pairs. The pair must be separated with a
-        colon (:) and the <value> cannot contain any spaces.
+    1 = The list of <var>:<value> pairs. The pair must be separated with a equal (=) and the <value> cannot contain any spaces.
+    2 = An optional delimiter. This is provided for situations where the normal delimiter (=) is contained within the expected value.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
+  $(if $(2),
+    $(eval __d := $(2))
+  ,
+    $(eval __d := =)
+  )
   $(foreach _e,$(1),
-    $(eval _ve := $(subst :,${Space},${_e}))
+    $(eval _ve := $(subst ${__d},${Space},${_e}))
     $(call Verbose,(${_ve}) Expecting:($(word 1,${_ve}))=($(word 2,${_ve})))
     $(call Verbose,Actual:(${$(word 1,${_ve})}))
     $(eval Differences := )
@@ -580,13 +493,9 @@ endef
 _macro := Expect-List
 define _help
 ${_macro}
-  Verifies a list matches an expected list by stepping through the expected
-  list and verifying each word of the list being verified matches.
-  Only the words in the expected list are verified -- meaning the list being
-  verified can be longer than the expected list.
-  Words that do not match produce an error message.
-  NOTE: The list can be a typical list or can be a sentence with each word
-  separated by spaces.
+  Verifies a list matches an expected list by stepping through the expected list and verifying each word of the list being verified matches. Only the words in the expected list are verified -- meaning the list being verified can be longer than the expected list. Words that do not match produce an error message.
+
+  NOTE: The list can be a typical list or can be a sentence with each word separated by spaces.
   Parameters:
     1 = The expected list.
     2 = The list to verify.
@@ -680,11 +589,9 @@ endef
 _macro := Expect-Message
 define _help
 ${_macro}
-  Use this to check all messages for a match with an expected message. When
-  the expected message is detected then indicate the expect passed. Use
-  Verify-Message to signal a pass or a fail.
-  NOTE: This checks the entire log line including all trace information.
-  This works by setting a callback to the expect filter using Set-Log-Callback.
+  Use this to check all messages for a match with an expected message. When the expected message is detected then indicate the expect passed. Use Verify-Message to signal a pass or a fail.
+
+  NOTE: This checks the entire log line including all trace information. This works by setting a callback to the expect filter using Set-Log-Callback.
   Parameters:
     1 = The expected message. The make wildcard character "%" can be used in
         individual words.
@@ -705,14 +612,10 @@ endef
 _macro := Verify-Message
 define _help
 ${_macro}
-  Verifies one or more messages matched the expected message. If a match
-  occurred the specified number of times a PASS is emitted. Otherwise, a FAIL
-  is emitted. This also clears the message callback.
+  Verifies one or more messages matched the expected message. If a match occurred the specified number of times a PASS is emitted. Otherwise, a FAIL is emitted. This also clears the message callback.
   Parameters:
-    1 = The optional number of times the message should have matched. If this
-        is empty then at least one match is verified to have occurred.
-    2 = The optional number of times the message should NOT have matched. If
-        this is empty then message mismatches are not checked.
+    1 = The optional number of times the message should have matched. If this is empty then at least one match is verified to have occurred.
+    2 = The optional number of times the message should NOT have matched. If this is empty then message mismatches are not checked.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
@@ -754,10 +657,7 @@ Actual_Warning :=
 _macro := Oneshot-Warning-Callback
 define _help
 ${_macro}
-  Use this as a one-shot message callback which verifies the error message using
-  Expect-String. This is designed to be called from Warn. Use
-  Set-Warning-Callback to install it. Once called Oneshot-Warning-Callback
-  disables itself.
+  Use this as a one-shot message callback which verifies the error message using Expect-String. This is designed to be called from Warn. Use Set-Warning-Callback to install it. Once called Oneshot-Warning-Callback disables itself.
   Parameters:
     1 = The error message to verify.
 endef
@@ -773,9 +673,7 @@ endef
 _macro := Expect-Warning
 define _help
 ${_macro}
-  Enables (arm) Oneshot-Warning-Callback as a callback and sets
-  Expected_Warning. The next call should be one which would generate the
-  expected warning. That should be followed by a call to Verify-Warning.
+  Enables (arm) Oneshot-Warning-Callback as a callback and sets Expected_Warning. The next call should be one which would generate the expected warning. That should be followed by a call to Verify-Warning.
   Parameters:
     1 = The expected warning.
 endef
@@ -791,14 +689,11 @@ endef
 _macro := Verify-Warning
 define _help
 ${_macro}
-  Verifies Oneshot-Warning-Callback was called since calling Expect-Warning.
-  A PASS is emitted if the error occurred. Otherwise a FAIL is emitted.
-  This also disables the warning handler to avoid confusing subsequent tests.
-  NOTE: For this to work Expect-Warning must be called to arm the one-shot
-  handler.
+  Verifies Oneshot-Warning-Callback was called since calling Expect-Warning. A PASS is emitted if the error occurred. Otherwise a FAIL is emitted. This also disables the warning handler to avoid confusing subsequent tests.
+
+  NOTE: For this to work Expect-Warning must be called to arm the one-shot handler.
   Parameters:
-    1 = If not active then the handler should have been called. Otherwise, the
-        handler should not have been called.
+    1 = If not active then the handler should have been called. Otherwise, the handler should not have been called.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
@@ -815,9 +710,7 @@ endef
 _macro := Expect-No-Warning
 define _help
 ${_macro}
-  Enables (arm) Oneshot-Warning-Callback as a callback and sets
-  Expected_Warning to empty. The next call should be one which could generate a
-  warning. That should be followed by a call to Verify-No-Warning.
+  Enables (arm) Oneshot-Warning-Callback as a callback and sets Expected_Warning to empty. The next call should be one which could generate a warning. That should be followed by a call to Verify-No-Warning.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
@@ -830,15 +723,11 @@ endef
 _macro := Verify-No-Warning
 define _help
 ${_macro}
-  Verifies Oneshot-Warning-Callback was not called since calling Expect-Warning.
-  A PASS is emitted If the warning has NOT occurred. Otherwise a FAIL is
-  emitted.
-  This also disables the warning handler to avoid confusing subsequent tests.
-  NOTE: For this to work Expect-Warning must be called to arm the one-shot
-  handler.
+  Verifies Oneshot-Warning-Callback was not called since calling Expect-Warning. A PASS is emitted If the warning has NOT occurred. Otherwise a FAIL is emitted. This also disables the warning handler to avoid confusing subsequent tests.
+
+  NOTE: For this to work Expect-Warning must be called to arm the one-shot handler.
   Parameters:
-    1 = If not active then the handler should have been called. Otherwise, the
-        handler should not have been called.
+    1 = If not active then the handler should have been called. Otherwise, the handler should not have been called.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
@@ -857,10 +746,7 @@ Actual_Error :=
 _macro := Oneshot-Error-Callback
 define _help
 ${_macro}
-  Use this as a one-shot error handler which verifies the error message using
-  Expect-String. This is designed to be called from Signal-Error. Use
-  Set-Error-Callback to install it. Once called Oneshot-Error-Callback disables
-  itself.
+  Use this as a one-shot error handler which verifies the error message using Expect-String. This is designed to be called from Signal-Error. Use Set-Error-Callback to install it. Once called Oneshot-Error-Callback disables itself.
   Parameters:
     1 = The error message to verify.
 endef
@@ -874,9 +760,9 @@ endef
 _macro := Expect-Error
 define _help
 ${_macro}
-  Enables (arm) Oneshot-Error-Callback as an error handler and sets
-  Expected_Error. NOTE: Verify-Error must be called to verify that the
-  error occurred and that the expected message was emitted.
+  Enables (arm) Oneshot-Error-Callback as an error handler and sets Expected_Error.
+
+  NOTE: Verify-Error must be called to verify that the error occurred and that the expected message was emitted.
   Parameters:
     1 = The expected error message.
 endef
@@ -893,12 +779,9 @@ endef
 _macro := Verify-Error
 define _help
 ${_macro}
-  Verifies Oneshot-Error-Callback was called since calling Expect-Error.
-  A PASS is recorded if the error occurred. Otherwise, a FAIL is recorded.
-  This also disables the error handler to avoid confusing subsequent tests.
-  The expected error is cleared.
-  NOTE: For this to work Expect-Error must be called to arm the one-shot
-  handler.
+  Verifies Oneshot-Error-Callback was called since calling Expect-Error. A PASS is recorded if the error occurred. Otherwise, a FAIL is recorded. This also disables the error handler to avoid confusing subsequent tests. The expected error is cleared.
+
+  NOTE: For this to work Expect-Error must be called to arm the one-shot handler.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
@@ -921,9 +804,7 @@ endef
 _macro := Expect-No-Error
 define _help
 ${_macro}
-  Enables (arm) Oneshot-Error-Callback as an error handler and sets
-  Expected_Error to empty. NOTE: Verify-No-Error must be called to verify that
-  the error did not occur.
+  Enables (arm) Oneshot-Error-Callback as an error handler and sets Expected_Error to empty. NOTE: Verify-No-Error must be called to verify that the error did not occur.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
@@ -936,12 +817,9 @@ endef
 _macro := Verify-No-Error
 define _help
 ${_macro}
-  Verifies Oneshot-Error-Callback was not called since calling Expect-No-Error.
-  A PASS is recorded If the error has NOT occurred. Otherwise a FAIL is
-  recorded.
-  This also disables the error handler to avoid confusing subsequent tests.
-  NOTE: For this to work Expect-No-Error must be called to arm the one-shot
-  handler.
+  Verifies Oneshot-Error-Callback was not called since calling Expect-No-Error. A PASS is recorded If the error has NOT occurred. Otherwise a FAIL is recorded. This also disables the error handler to avoid confusing subsequent tests.
+
+  NOTE: For this to work Expect-No-Error must be called to arm the one-shot handler.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
@@ -959,8 +837,7 @@ $(call Add-Help-Section,Reports,Report variable and context values.)
 _macro := Display-Vars
 define _help
 ${_macro}
-  Display a list of variables and their values. This produces a series of
-  messages formatted as <varname> = <varvalue>
+  Display a list of variables and their values. This produces a series of messages formatted as <varname> = <varvalue>
   Parameters:
     1 = The list of variable names.
 endef
@@ -980,8 +857,7 @@ endef
 _macro := Report-Seg-Context
 define _help
 ${_macro}
-  Displays a series of messages for the current segment context as defined by
-  Enter-Segment and Set-Segment-Context (see help-helpers).
+  Displays a series of messages for the current segment context as defined by Enter-Segment and Set-Segment-Context (see help-helpers).
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
@@ -1054,8 +930,7 @@ define _help
 ${_macro}
   Initialize test results for a given context.
   Parameters:
-    1 = The context for which to init the results. To initialize the "active"
-        context do not pass this parameter.
+    1 = The context for which to init the results. To initialize the "active" context do not pass this parameter.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
@@ -1075,9 +950,7 @@ endef
 _macro := Declare-Contexts
 define _help
 ${_macro}
-  Create and initialize context specific variables or each of the specified
-  contexts. This initializes both the manifest and the test results for the
-  context.
+  Create and initialize context specific variables or each of the specified contexts. This initializes both the manifest and the test results for the context.
   Parameters:
     1 = The list of contexts being declared.
 endef
@@ -1125,7 +998,7 @@ endef
 _macro := Add-Tests-To-Contexts
 define _help
 ${_macro}
-   Add one or more tests to one or more context manifests.
+  Add one or more tests to one or more context manifests.
   Parameters:
     1 = The list of contexts to add the suite to.
     2 = The list of tests to add to the manifest.
@@ -1159,8 +1032,7 @@ $(call Add-Help-Section,Results,Test result recording and reporting.)
 _macro := Update-Test-Results
 define _help
 ${_macro}
-  Update test results for each specified context based upon the results of the
-  current test which have been stored in the active context.
+  Update test results for each specified context based upon the results of the current test which have been stored in the active context.
   Parameters:
     1 = The list of contexts for which to update the results.
 endef
@@ -1265,8 +1137,7 @@ endef
 _macro := End-Test
 define _help
 ${_macro}
-  Mark the end of a test and do any end of test processing. This updates the
-  testing stats and clears the suite context.
+  Mark the end of a test and do any end of test processing. This updates the testing stats and clears the suite context.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
@@ -1319,8 +1190,7 @@ endef
 _macro := End-Declare-Suite
 define _help
 ${_macro}
-  End initialization of the current test suite. This clears the suite context
-  so that proper context can be verified when using context specific variables.
+  End initialization of the current test suite. This clears the suite context so that proper context can be verified when using context specific variables.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
@@ -1335,9 +1205,7 @@ endef
 _macro := Declare-Test
 define _help
 ${_macro}
-  Add a test to the list of tests and the current test suite. If the test has
-  already been added a warning is issued. The test can then be uniquely
-  referenced using the <suite>.<test> notation.
+  Add a test to the list of tests and the current test suite. If the test has already been added a warning is issued. The test can then be uniquely referenced using the <suite>.<test> notation.
   Parameters:
     1 = The name of the test <test>.
 endef
@@ -1365,13 +1233,11 @@ $(call Add-Help-Section,Run,Running tests.)
 _macro := Run-Prerequisites
 define _help
 ${_macro}
-  Run a list of prerequisite tests. If a prerequisite test has already run
-  it will be skipped. A reference to a prerequisite test has the format:
+  Run a list of prerequisite tests. If a prerequisite test has already run it will be skipped. A reference to a prerequisite test has the format:
     <seg>.<test>
   The segment <seg> is loaded if it has not already been loaded.
 
-  Prerequisite tests are run recursively. If a prerequisite test has
-  prerequisites then its prerequisites are run first.
+  Prerequisite tests are run recursively. If a prerequisite test has prerequisites then its prerequisites are run first.
 
   Parameters:
     1 = The test for which the prerequisites should be run.
@@ -1433,12 +1299,7 @@ endef
 _macro := Run-Tests
 define _help
 ${_macro}
-  Run each test in a list of tests. The individual tests will be executed only
-  if they are included in the list of goals. Each test can declare a list of
-  tests which need to be successfully run (PASS) before running the current
-  test (prerequisites). This list is declared in a variable named
-  <test>.Prereqs. Prerequisite tests do not need to be listed as a goal.
-  If any of the prerequisite tests fail as indicated by the variable Test.Failed
+  Run each test in a list of tests. The individual tests will be executed only if they are included in the list of goals. Each test can declare a list of tests which need to be successfully run (PASS) before running the current test (prerequisites). This list is declared in a variable named <test>.Prereqs. Prerequisite tests do not need to be listed as a goal. If any of the prerequisite tests fail as indicated by the variable Test.Failed
   the current test is considered to have failed.
   Parameters:  Parameters:
     1 = The name of the list of tests to run.
@@ -1478,8 +1339,8 @@ endef
 _macro := Create-Run-List
 define _help
 ${_macro}
-  Create the list of tests to be run and ensure all of the test suite segments
-  for a given test list are in use. This calls Use-Segment to load a test suite.
+  Create the list of tests to be run and ensure all of the test suite segments for a given test list are in use. This calls Use-Segment to load a test suite.
+
   NOTE: This does not include prerequisite tests.
   Parameters:
     1 = The list of test suites to use. If this is active then the CASES
@@ -1552,23 +1413,17 @@ endef
 _macro := Run-Suites
 define _help
 ${_macro}
-  Run each test suite specified by the CASES variable. Each test suite is
-  contained in its own makefile segment and must be stand alone (i.e. not
-  dependant upon conditions setup by other test suites). A test suite declares
-  a list of tests which are to be executed as part of the suite. The suite then
-  runs the tests using Run-Tests.
+  Run each test suite specified by the CASES variable. Each test suite is contained in its own makefile segment and must be stand alone (i.e. not dependant upon conditions setup by other test suites). A test suite declares a list of tests which are to be executed as part of the suite. The suite then runs the tests using Run-Tests.
+
   NOTE: The test suites will not be run if any goal is help.
-  Additional help for the suites and tests specified by the CASES variable can
-  be displayed using the goals:
+  Additional help for the suites and tests specified by the CASES variable can be displayed using the goals:
     help-Run.SuiteL
       Displays the help message for each of the suites in the run.
     help-Run.TestL
       Displays the help message for each of the tests in the run.
   Parameters:
     1 = The path to the directory containing the test suites.
-    2 = The list of test cases to run. If this is active then the CASES
-        variable is used. This supports the notation described for CASES, See
-        help-CASES for more information.
+    2 = The list of test cases to run. If this is active then the CASES variable is used. This supports the notation described for CASES, See help-CASES for more information.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})

@@ -15,9 +15,7 @@ $(call Enter-Segment,Test detection of segment name conflict.)
 __h := $(or $(call Is-Goal,help-${SegUN}),$(call Is-Goal,help-${SegID}))
 ifneq (${__h},)
 define __help
-This make segment is designed to test detection of a prefix conflict between
-two or more files. Displaying this help should not be possible because this
-file uses the same prefix as test-macros.mk.
+This make segment is designed to test detection of a prefix conflict between two or more files. Displaying this help should not be possible because this file uses the same prefix as test-macros.mk.
 endef
 ${__h} := ${__help}
 endif

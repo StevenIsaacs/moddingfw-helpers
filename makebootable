@@ -4,7 +4,7 @@
 # image file.
 #-
 ScriptPath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-source $ScriptPath/modfw-functions.sh
+source $ScriptPath/moddingfw-functions.sh
 
 usage () {
     cat << EOF

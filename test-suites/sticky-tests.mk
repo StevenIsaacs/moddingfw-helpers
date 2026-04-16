@@ -31,8 +31,7 @@ $(call Declare-Test,Sticky)
 define _help
 ${.TestUN}
   Verify the macro:$(call Get-Test-Name,${.TestUN})
-  This verifies the logic of sticky variables (see help-Sticky).
-  Two sticky variables, CASES and SUITES_PATH, should already exist by the time
+  This verifies the logic of sticky variables (see help-Sticky). Two sticky variables, CASES and SUITES_PATH, should already exist by the time
   this macro is called. These are first verified to have correct values.
 endef
 help-${.TestUN} := $(call _help)

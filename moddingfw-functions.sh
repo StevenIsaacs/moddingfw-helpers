@@ -1,8 +1,8 @@
 #+
-# Some bash support functions for ModFW.
+# Some bash support functions for ModdingFW.
 #-
 id=$(basename $0)
-SettingsDir=~/.modfw/$(basename $0)
+SettingsDir=~/.moddingfw/$(basename $0)
 
 function get_default() {
   # Parameters:

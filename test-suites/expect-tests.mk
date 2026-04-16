@@ -40,25 +40,28 @@ define ${.TestUN}
   $(eval _v1 := 1)
   $(eval _v2 := 2)
   $(eval _v3 := 3)
-  $(call Expect-Vars,_v1:1 _v2:2 _v3:3)
+  $(call Expect-Vars,_v1=1 _v2=2 _v3=3)
+
+  $(call Test-Info,Using delimiter override.)
+  $(call Expect-Vars,_v1:1 _v2:2 _v3:3,:)
 
   $(eval _v1 := abc)
   $(eval _v2 := Def)
   $(eval _v3 := GhIJKlmnop)
-  $(call Expect-Vars,_v1:abc _v2:Def _v3:GhIJKlmnop)
+  $(call Expect-Vars,_v1=abc _v2=Def _v3=GhIJKlmnop)
 
   $(call Set-Expected-Results,PASS PASS FAIL)
-  $(call Expect-Vars,_v1:abc _v2:Def _v3:X)
+  $(call Expect-Vars,_v1=abc _v2=Def _v3=X)
 
   $(call Set-Expected-Results,PASS FAIL PASS)
-  $(call Expect-Vars,_v1:abc _v2:def _v3:GhIJKlmnop)
+  $(call Expect-Vars,_v1=abc _v2=def _v3=GhIJKlmnop)
 
   $(call Set-Expected-Results,FAIL PASS PASS)
-  $(call Expect-Vars,_v1: _v2:Def _v3:GhIJKlmnop)
+  $(call Expect-Vars,_v1= _v2=Def _v3=GhIJKlmnop)
 
   $(eval _v1 :=)
   $(call Set-Expected-Results,PASS PASS PASS)
-  $(call Expect-Vars,_v1: _v2:Def _v3:GhIJKlmnop)
+  $(call Expect-Vars,_v1= _v2=Def _v3=GhIJKlmnop)
 
   $(call End-Test)
   $(call Exit-Macro)

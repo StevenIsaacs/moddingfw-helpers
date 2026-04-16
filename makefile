@@ -1,22 +1,26 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Test the helpers.
 #----------------------------------------------------------------------------
-#VERBOSE=1
 #DEBUG=1
 
 TmpTestPath := ${CURDIR}/tmp/test-helpers
 LOG_PATH := ${TmpTestPath}/log
+LOG_FILE := test-helpers.log
 
 STICKY_PATH := ${TmpTestPath}/sticky
 
 MakeTL := Run the test suites to test the helpers.
 
+# VERBOSE is required because some tests verify verbose output. If VERBOSE is
+# not set, the test output is not verbose and the tests fail.
+VERBOSE=1
+
 include helpers.mk
 
 $(call Enable-Log-File)
 
-$(call Info,WorkingPath: ${WorkingPath})
-$(call Info,WorkingVar: ${WorkingVar})
+$(call Info,CorePath: ${CorePath})
+$(call Info,CoreVar: ${CoreVar})
 
 $(call Use-Segment,test-helpers)
 
@@ -42,11 +46,9 @@ Usage: make [<option>=<value> ...] [<goal> [<goal> ...]]
 
 NOTE: This help is displayed if no goal is specified.
 
-This make file is used to run test suites for testing the helpers and the
-test helpers.
+This make file is used to run test suites for testing the helpers and the test helpers.
 
-The sticky variable CASES defines which tests are run. See help-CASES for more
-information.
+The sticky variable CASES defines which tests are run. See help-CASES for more information.
 
 Use the test goal. See help-test-helpers for more information.
 

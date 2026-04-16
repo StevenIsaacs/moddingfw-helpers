@@ -39,7 +39,7 @@ define ${.TestUN}
 
   $(eval _v := 0)
   $(foreach _e,0 1 2,
-    $(call Expect-Vars,_v:${_e})
+    $(call Expect-Vars,_v=${_e})
     $(call Inc-Var,_v)
   )
 
@@ -61,7 +61,7 @@ define ${.TestUN}
 
   $(eval _v := 2)
   $(foreach _e,2 1 0,
-    $(call Expect-Vars,_v:${_e})
+    $(call Expect-Vars,_v=${_e})
     $(call Dec-Var,_v)
   )
 
@@ -83,25 +83,25 @@ define ${.TestUN}
 
   $(eval _v := 0)
   $(foreach _e,0 2 4,
-    $(call Expect-Vars,_v:${_e})
+    $(call Expect-Vars,_v=${_e})
     $(call Add-Var,_v,2)
   )
 
   $(eval _v := 0)
   $(foreach _e,0 101 202,
-    $(call Expect-Vars,_v:${_e})
+    $(call Expect-Vars,_v=${_e})
     $(call Add-Var,_v,101)
   )
 
   $(eval _v := -10)
   $(foreach _e,-10 -7 -4,
-    $(call Expect-Vars,_v:${_e})
+    $(call Expect-Vars,_v=${_e})
     $(call Add-Var,_v,3)
   )
 
   $(eval _v := 0)
   $(foreach _e,0 -3 -6,
-    $(call Expect-Vars,_v:${_e})
+    $(call Expect-Vars,_v=${_e})
     $(call Add-Var,_v,-3)
   )
 
@@ -123,25 +123,25 @@ define ${.TestUN}
 
   $(eval _v := 10)
   $(foreach _e,10 7 4,
-    $(call Expect-Vars,_v:${_e})
+    $(call Expect-Vars,_v=${_e})
     $(call Sub-Var,_v,3)
   )
 
   $(eval _v := 202)
   $(foreach _e,202 101 0,
-    $(call Expect-Vars,_v:${_e})
+    $(call Expect-Vars,_v=${_e})
     $(call Sub-Var,_v,101)
   )
 
   $(eval _v := 0)
   $(foreach _e,0 -3 -6,
-    $(call Expect-Vars,_v:${_e})
+    $(call Expect-Vars,_v=${_e})
     $(call Sub-Var,_v,3)
   )
 
   $(eval _v := 0)
   $(foreach _e,0 3 6,
-    $(call Expect-Vars,_v:${_e})
+    $(call Expect-Vars,_v=${_e})
     $(call Sub-Var,_v,-3)
   )
 
@@ -162,7 +162,7 @@ define ${.TestUN}
   $(call Begin-Test,$(0))
 
   $(eval _v := $(call To-Shell-Var,test-var-name))
-  $(call Expect-Vars,_v:_test_var_name)
+  $(call Expect-Vars,_v=_test_var_name)
 
   $(call End-Test)
   $(call Exit-Macro)
@@ -219,10 +219,10 @@ define ${.TestUN}
   $(call Begin-Test,$(0))
 
   $(eval _v := $(call To-Lower,AbCdEF))
-  $(call Expect-Vars,_v:abcdef)
+  $(call Expect-Vars,_v=abcdef)
 
-  $(eval _v := $(call To-Lower,"A123!=&bCD"))
-  $(call Expect-Vars,_v:a123!=&bcd)
+  $(eval _v := $(call To-Lower,"A123neq&bCD"))
+  $(call Expect-Vars,_v=a123neq&bcd)
 
   $(call End-Test)
   $(call Exit-Macro)
@@ -241,10 +241,10 @@ define ${.TestUN}
   $(call Begin-Test,$(0))
 
   $(eval _v := $(call To-Upper,AbCdEF))
-  $(call Expect-Vars,_v:ABCDEF)
+  $(call Expect-Vars,_v=ABCDEF)
 
-  $(eval _v := $(call To-Upper,"A123!=&bCD"))
-  $(call Expect-Vars,_v:A123!=&BCD)
+  $(eval _v := $(call To-Upper,"A123neq&bCD"))
+  $(call Expect-Vars,_v=A123NEQ&BCD)
 
   $(call End-Test)
   $(call Exit-Macro)

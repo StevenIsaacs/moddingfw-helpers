@@ -10,9 +10,7 @@ $(call Enter-Segment,<purpose for this segment>.)
 _macro := ${SegUN}.init
 $.define _help
 ${_macro}
-  Run the initialization for the segment. This is designed to be called
-  some time after the segment has been loaded. This is useful when this
-  segment uses variables from other segments which haven't been loaded.
+  Run the initialization for the segment. This is designed to be called some time after the segment has been loaded. This is useful when this segment uses variables from other segments which haven't been loaded.
 $.endef
 $.define ${_macro}
 $(call Enter-Macro,$(0),Seg=$(1))
