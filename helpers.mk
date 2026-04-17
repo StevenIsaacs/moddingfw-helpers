@@ -278,7 +278,7 @@ help-${_var} := $(call _help)
 $(call Add-Help,${_var})
 
 _var := TmpPath
-${_var} := /tmp/${TmpDir}
+${_var} := ${CURDIR}/tmp/${TmpDir}
 $(shell mkdir -p ${${_var}})
 define _help
 ${_var} = ${${_var}}
