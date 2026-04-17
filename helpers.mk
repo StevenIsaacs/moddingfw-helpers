@@ -43,6 +43,25 @@ _private-macro or _Private-Macro
 endef
 help-${SegID} := $(call _help)
 
+define __Set-First-Path
+  $(eval $(2) := )
+  $(eval __seg := $(basename $(notdir $(1))))
+  $(eval __p := $(subst /^,,$(dir $(abspath $(1)))^))
+  $(eval $(2) := $(lastword $(subst /, ,${__p}.$(strip ${__seg}))))
+endef
+
+_var := SegUNs
+$(call __Set-First-Path,$(firstword ${MAKEFILE_LIST}),${_var})
+define _help
+${_var}
+  The list of pseudo unique names for all loaded segments. This can be indexed using SegID.
+endef
+help-${_var} := $(call _help)
+
+define __Get-Segment-UN
+  $(word $(1),${SegUNs})
+endef
+
 _macro := Add-Help-Section
 define _help
 ${_macro}
@@ -52,12 +71,9 @@ ${_macro}
     2 = The section description.
 endef
 define ${_macro}
-  $(eval help-${SegID}.$(1) := ---- $(2) ----)
-  $(if ${${SegID}.SegHL},
-    $(eval ${SegID}.SegHL += ${SegID}.$(1))
-  ,
-    $(eval ${SegID}.SegHL := ${SegID}.$(1))
-  )
+  $(eval __un := $(call __Get-Segment-UN,${SegID}))
+  $(eval ${__un}.SegHL += ---- $(2) ----)
+  $(eval ${__un}.SegHL += ${__un}.$(1))
 endef
 help-${_macro} := $(call _help)
 
@@ -69,14 +85,10 @@ ${_macro}
     1 = The name of the variable or macro to declare help for.
 endef
 define ${_macro}
-  $(if ${${SegID}.SegHL},
-    $(eval ${SegID}.SegHL += $(1))
-  ,
-    $(eval ${SegID}.SegHL := $(1))
-  )
+  $(eval __un := $(call __Get-Segment-UN,${SegID}))
+  $(eval ${__un}.SegHL += $(1))
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${SegID})
 $(call Add-Help,Help-List)
 $(call Add-Help-Section,HelpL,\
   Use these macros to build and display help messages.)
@@ -93,7 +105,8 @@ endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
-$(foreach _h,${$(1).SegHL},
+  $(eval __un := $(call __Get-Segment-UN,${SegID}))
+  $(foreach _h,${${__un}.SegHL},
 
 ${help-${_h}})
 endef
@@ -1236,6 +1249,8 @@ endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
 
+$(call Add-Help,SegUNs)
+
 _macro := Path-To-UN
 define _help
 ${_macro}
@@ -1264,6 +1279,7 @@ define ${_macro}
   $(call Exit-Macro)
 endef
 
+
 _var := FirstSegUN
 $(call Path-To-UN,$(firstword ${MAKEFILE_LIST}),${_var})
 define _help
@@ -1278,15 +1294,6 @@ ${_var} :=
 define _help
 ${_var}
   The unique name of the last included segment.
-endef
-help-${_var} := $(call _help)
-$(call Add-Help,${_var})
-
-_var := SegUNs
-${_var} := ${FirstSegUN}
-define _help
-${_var}
-  The list of pseudo unique names for all loaded segments. This can be indexed using SegID.
 endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
@@ -1622,10 +1629,11 @@ define ${_macro}
 
   $(eval __pc := $(words ${MAKEFILE_LIST}))
   $(if $(filter ${__pc},2),
-    $(eval ${FirstSegUN}.SegID := 1)
+    $(eval SegID := 1)
+    $(eval ${FirstSegUN}.SegID := ${SegID})
     $(eval ${FirstSegUN}.UserSegID :=)
     $(eval ${FirstSegUN}.SegUN := $(call Get-Segment-UN,1))
-    $(eval ${FirstSegUN}.Seg := $(call Get-Segment-Basename,1))
+    $(eval ${FirstSegUN}.Seg := $(call Get-Segment-Basename,${SegID}))
     $(eval ${FirstSegUN}.SegP := $(call Get-Segment-Path,1))
     $(eval ${FirstSegUN}.SegD := $(call Get-Segment-Dir,1))
     $(eval ${FirstSegUN}.SegF := $(call Get-Segment-File,1))
@@ -1653,9 +1661,11 @@ define ${_macro}
   $(call Enter-Macro,$(0))
   $(call Last-Segment-UN)
   $(call Attention,Declaring segment:${LastSegUN})
+  $(call Verbose,Initializing segment context for segment: ${SegID})
   $(eval SegUNs += ${LastSegUN})
   $(eval ${LastSegUN}.UserSegID := ${SegID})
-  $(eval ${LastSegUN}.SegID := $(call Last-Segment-ID))
+  $(eval SegID := $(call Last-Segment-ID))
+  $(eval ${LastSegUN}.SegID := ${SegID})
   $(eval ${LastSegUN}.SegUN := ${LastSegUN})
   $(eval ${LastSegUN}.Seg := $(call Last-Segment-Basename))
   $(eval ${LastSegUN}.SegP := $(call Last-Segment-Path))
