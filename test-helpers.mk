@@ -1264,7 +1264,7 @@ define ${_macro}
         $(if ${${_st}.SegID},
           $(call Verbose,The suite containing ${_prereq} is in use.)
         ,
-          $(call Use-Segment,${_st})
+          $(call Use-Segment,${_st},)
         )
         $(call Verbose,Prereq ${_prereq} origin:$(origin ${_prereq}))
         $(if $(filter undefined,$(origin ${_prereq})),

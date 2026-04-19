@@ -74,9 +74,12 @@ ${_macro}
     2 = The section description.
 endef
 define ${_macro}
+$(info ${_macro}: ${SegID})
   $(eval __un := $(call __Get-Segment-UN,${SegID}))
-  $(eval ${__un}.SegHL += ---- $(2) ----)
-  $(eval ${__un}.SegHL += ${__un}.$(1))
+  $(eval __hn := help-${__un}.$(1))
+  $(eval ${__hn} := ---- $(1) ----)
+  $(eval ${__hn} += $(2))
+  $(eval ${__un}.SegHL += ${__hn})
 endef
 help-${_macro} := $(call _help)
 
@@ -755,7 +758,7 @@ endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
-  $(call Enter-Macro,$(0))
+  $(call Enter-Macro,$(0),)
   $(eval Single_Step := yes)
   $(call Exit-Macro)
 endef
@@ -768,7 +771,7 @@ endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
-  $(call Enter-Macro,$(0))
+  $(call Enter-Macro,$(0),)
   $(eval Single_Step :=)
   $(call Exit-Macro)
 endef
@@ -1247,7 +1250,7 @@ ${_var} = ${${_var}}
     SegTL or <segun>.SegTL
       A one line description (tag line) for the segment.
     SegHL or <segun>.SegHL
-      A multi-line description (help) for the segment.
+      A list of symbol names for help messages.
 endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
@@ -1312,7 +1315,7 @@ endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
-  $(call Enter-Macro,$(0))
+  $(call Enter-Macro,$(0),)
   $(call Path-To-UN,$(lastword ${MAKEFILE_LIST}),LastSegUN)
   $(call Verbose,Path-To-UN returned:${LastSegUN})
   $(call Exit-Macro)
@@ -1495,7 +1498,7 @@ define ${_macro}
   $(eval $(2) := )
   $(call Verbose,Locating segment: $(1))
   $(if $(findstring .mk,$(1)),
-    $(call Verbose,Checking seg file path:${1})
+    $(call Verbose,Checking seg file path:$(1))
     $(if $(wildcard $(1)),
       $(eval $(2) := $(1))
     )
@@ -1661,7 +1664,7 @@ endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
-  $(call Enter-Macro,$(0))
+  $(call Enter-Macro,$(0),)
   $(call Last-Segment-UN)
   $(call Attention,Declaring segment:${LastSegUN})
   $(call Verbose,Initializing segment context for segment: ${SegID})
@@ -1710,7 +1713,7 @@ endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
-  $(call Enter-Macro,$(0))
+  $(call Enter-Macro,$(0),)
   $(call Verbose,Exiting segment: ${${SegUN}.Seg})
   $(call __Pop-SegID)
   $(eval $(call Set-Segment-Context,${SegID}))
@@ -1726,7 +1729,7 @@ endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
-  $(call Enter-Macro,$(0))
+  $(call Enter-Macro,$(0),)
   $(call Verbose,\
     Segment exists: ID = ${${LastSegUN}.SegID}: file = $(call Get-Segment-File,${${LastSegUN}.SegID}))
   $(if \
@@ -1890,7 +1893,7 @@ endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
-  $(call Enter-Macro,$(0))
+  $(call Enter-Macro,$(0),)
   $(call Verbose,Resolving help goals.)
   $(call Verbose,Help goals: $(filter help%,${Goals}))
   $(foreach __s,$(patsubst help-%,%,$(filter help-%,${Goals})),
@@ -1902,7 +1905,7 @@ define ${_macro}
           SegID ${__s} does not exist -- help unavailable.)
         $(call Signal-Error,Segment ID ${__s} does not exist -- no help.)
       ,
-        $(call Use-Segment,$(subst .,/,${__s}).mk)
+        $(call Use-Segment,$(subst .,/,${__s}).mk,)
         $(if $(call Is-Not-Defined,help-${__s}),
           $(call Signal-Error,help-${__s} is undefined.)
         )
@@ -2453,7 +2456,7 @@ endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
-  $(call Enter-Macro,$(0))
+  $(call Enter-Macro,$(0),)
     $(call Info,Segments:${SegUNs})
     $(call Info,SegID:Seg:SegUN:SegTL.)
     $(foreach __s,${SegUNs},
@@ -2472,7 +2475,7 @@ ${_macro}
     MoreHelpList
       The list of help messages to append to the help output.
 endef
-help-${_macro} := $(call ${__help})
+help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),HelpList=$(1))
@@ -2704,7 +2707,7 @@ endef
 ${__h} := ${__help}
 endif # help goal
 $(call Verbose,Last-Segment-ID:$(call Last-Segment-ID))
-$(call Verbose,${helpers.Seg}.SegID:${${helpers.Seg}.SegID})
+$(call Verbose,${LastSegUN}.SegID:${${LastSegUN}.SegID})
 $(call Exit-Segment)
 else # Already loaded.
 $(call Check-Segment-Conflicts)

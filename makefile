@@ -9,6 +9,8 @@ LOG_FILE := test-helpers.log
 
 STICKY_PATH := ${TmpTestPath}/sticky
 
+# DEBUG := 1
+
 MakeTL := Run the test suites to test the helpers.
 
 # VERBOSE is required because some tests verify verbose output. If VERBOSE is
@@ -23,7 +25,7 @@ $(call Enable-Log-File)
 $(call Info,CorePath: ${CorePath})
 $(call Info,CoreVar: ${CoreVar})
 
-$(call Use-Segment,test-helpers)
+$(call Use-Segment,test-helpers,)
 
 $(call Run-Suites,${SUITES_PATH},${CASES})
 
