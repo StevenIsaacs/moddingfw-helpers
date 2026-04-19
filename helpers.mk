@@ -41,9 +41,10 @@ Callable-Macro
 _private-macro or _Private-Macro
                 A private macro specific to a segment.
 endef
-help-${SegID} := $(call _help)
+help-$(Seg) := $(call _help)
 
-# For generating text as part of a make file.
+# For generating text as part of a make file. This is used to cause the parser
+# to not expand what follows. Call as $$.
 . :=
 
 define __Set-First-Path
@@ -53,13 +54,31 @@ define __Set-First-Path
   $(eval $(2) := $(lastword $(subst /, ,${__p}.$(strip ${__seg}))))
 endef
 
+# Help messages cannot be accumulated until the helpers segment has been entered
+# which depends upon other macros and vars being defined beforehand. Therefore,
+# create a list of symbols to be added once segment entry has occurred.
+__HelpQueue := ${Seg}
+
+define __Queue-Help
+  $(eval __HelpQueue += $(1))
+endef
+
+define __Queue-Help-Section
+  $(eval help-${Seg}.$(1) := ---- $(1) ---- $(2))
+  $(eval __HelpQueue += ${Seg}.$(1))
+endef
+
 _var := SegUNs
+# For top level makefile.
 $(call __Set-First-Path,$(firstword ${MAKEFILE_LIST}),${_var})
+# Add self.
+${_var} += ${SegUN}
 define _help
 ${_var}
   The list of pseudo unique names for all loaded segments. This can be indexed using SegID.
 endef
 help-${_var} := $(call _help)
+$(call __Queue-Help, ${_var})
 
 define __Get-Segment-UN
   $(word $(1),${SegUNs})
@@ -77,6 +96,7 @@ define ${_macro}
   $(eval ${__un}.SegHL += $(1))
 endef
 help-${_macro} := $(call _help)
+$(call __Queue-Help, ${_macro})
 
 _macro := Add-Help-Section
 define _help
@@ -94,9 +114,9 @@ define ${_macro}
   $(call Add-Help, ${__hn})
 endef
 help-${_macro} := $(call _help)
+$(call __Queue-Help, ${_macro})
 
-$(call Add-Help,Help-List)
-$(call Add-Help-Section,HelpL,\
+$(call __Queue-Help-Section,HelpL,\
   Use these macros to build and display help messages.)
 $(call Add-Help,Add-Help-Section)
 $(call Add-Help,${_macro})
@@ -109,7 +129,7 @@ ${_macro}
     1 = The segment ID for which to display the help list.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(eval __un := $(call __Get-Segment-UN,${SegID}))
   $(foreach _h,${${__un}.SegHL},
@@ -117,7 +137,7 @@ define ${_macro}
 ${help-${_h}})
 endef
 
-$(call Add-Help-Section,Options,Helper command line options.)
+$(call __Queue-Help-Section,Options,Helper command line options.)
 
 _var := PAUSE_ON_ERROR
 ${_var} :=
@@ -126,7 +146,7 @@ ${_var}
   When not empty execution will pause any time an error is reported.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := STOP_ON_ERROR
 ${_var} :=
@@ -135,7 +155,7 @@ ${_var}
   When not empty execution will exit when an error is reported.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := Exit_On_Error
 ${_var} :=
@@ -144,9 +164,9 @@ ${_var}
   When not empty execution will exit when an error is reported. This is the same as STOP_ON_ERROR but is ignored when testing.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
-$(call Add-Help-Section,Vars,Helper variables.)
+$(call __Queue-Help-Section,Vars,Helper variables.)
 
 _var := .RECIPEPREFIX
 ${_var} := >
@@ -155,7 +175,7 @@ ${_var} = ${${_var}}
   The ${_var} is changed because some editors, like vscode, don't handle tabs in make files very well. This also slightly improves readability.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 # NOTE: Bash is required because of some bash-isms being used.
 _var := SHELL
@@ -165,7 +185,7 @@ ${_var} = ${${_var}}
   Bash is required because of some bash-isms potentially being used in the helpers.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := True
 ${_var} := 1
@@ -174,7 +194,7 @@ ${_var} = ${${_var}}
   When used in a conditional this evaluates to true. In make a non-empty value is true. This is provided to improve readability in conditionals.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := False
 ${_var} :=
@@ -183,7 +203,7 @@ ${_var} = ${${_var}}
   When used in a conditional this evaluates to false. In make an empty value is false. This is provided to improve readability in conditionals.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := DefaultGoal
 ifeq (${MAKECMDGOALS},)
@@ -196,7 +216,7 @@ ${_var} = ${${_var}}
   When there are no goals on the make command line the default goal is used. Normally, this is the first goal make encounters when parsing makefiles. The helpers changes this to display the help for the first makefile in the makefile list.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := Goals
 ${_var} := ${DefaultGoal} ${MAKECMDGOALS}
@@ -205,7 +225,7 @@ ${_var} = ${${_var}}
   This is the list of goals from the make command line.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := SubMake
 ifeq (${MAKELEVEL},0)
@@ -218,7 +238,7 @@ ${_var} = ${${_var}}
   When non-empty this variable indicates make is being run from a makefile, a submake. There are some things a submake should not do such as change the log file variables.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := CorePath
 ${_var} := $(realpath $(dir $(word 1,${MAKEFILE_LIST})))
@@ -229,7 +249,7 @@ ${_var} = ${${_var}}
   NOTE: If this is mounted in a container, mount as a read only volume and should not be written to.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := CoreDir
 ${_var} := $(notdir ${CorePath})
@@ -238,7 +258,7 @@ ${_var} = ${${_var}}
   This is the name of the last directory in CorePath.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := CoreVar
 ${_var} := _$(subst -,_,$(CoreDir))
@@ -247,7 +267,7 @@ ${_var} = ${${_var}}
   This is a bash compatible variable name for CoreDir.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := ContextPath
 ${_var} := $(realpath $(dir $(word 1,${MAKEFILE_LIST})))
@@ -258,7 +278,7 @@ ${_var} = ${${_var}}
   NOTE: If this is mounted in a container, mount as a read/write volume.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := ContextDir
 ${_var} := $(notdir ${ContextPath})
@@ -267,7 +287,7 @@ ${_var} = ${${_var}}
   This is the name of the last directory in ContextPath.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := ContextVar
 ${_var} := _$(subst -,_,$(ContextDir))
@@ -276,7 +296,7 @@ ${_var} = ${${_var}}
   This is a bash compatible variable name for ContextDir.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := HiddenPath
 ${_var} := ${ContextPath}/.${ContextDir}
@@ -285,7 +305,7 @@ ${_var} = ${${_var}}
   The path to the directory containing hidden files.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := TmpDir
 ${_var} := ${ContextDir}
@@ -294,7 +314,7 @@ ${_var} = ${${_var}}
   The name of the directory where temporary files such as log files and help messages are written to.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := TmpPath
 ${_var} := ${CURDIR}/tmp/${TmpDir}
@@ -306,7 +326,7 @@ ${_var} = ${${_var}}
   NOTE: On some systems files in the temporary directory are not persistent across reboots.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := LOG_DIR
 ${_var} ?= log
@@ -315,7 +335,7 @@ ${_var} = ${${_var}}
   The name of the directory containing log files.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := LOG_PATH
 ${_var} ?= ${TmpPath}/${LOG_DIR}
@@ -324,7 +344,7 @@ ${_var} = ${${_var}}
   The full path to the directory containing log files.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := LOG_FILE
 ${_var} ?=
@@ -333,7 +353,7 @@ ${_var} = ${ContextDir}
   Use this variable on the make command line to enable message logging and set the name of the log file in the log file directory.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := LogFile
 ${_var} :=
@@ -342,9 +362,9 @@ ${_var} = ${${_var}}
   The full path to the log file. This is set by the Enable-Log-File macro when LOG_FILE is set.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
-$(call Add-Help-Section,BashStrings,For creating strings to be passed to bash.)
+$(call __Queue-Help-Section,BashStrings,For creating strings to be passed to bash.)
 
 _var := NewLine
 ${_var} := nlnl
@@ -353,7 +373,7 @@ ${_var} = ${${_var}}
   This variable is provided to embed a known pattern into strings which can then be replaced with a newline when the variable is exported to the environment when running a bash script.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 __empty :=
 _var := Space
@@ -363,7 +383,7 @@ ${_var} = ${${_var}}
   This is provided to embed a space in a variable which will be exported to the environment when running a bash script.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := Comma
 ${_var} := ,
@@ -372,7 +392,7 @@ ${_var} = ${${_var}}
   This is provided to embed a comma in a string so that it won't be parsed incorrectly and interpreted to be a parameter delimiter by make.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := Dlr
 ${_var} := $
@@ -381,9 +401,9 @@ ${_var} = ${${_var}}
   This is provided to embed a dollar sign in a variable which will be exported to the environment when running a bash script. Using this variable disables the normal make parsing of dollar signs.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
-$(call Add-Help-Section,MakeTL,Top level make.)
+$(call __Queue-Help-Section,MakeTL,Top level make.)
 
 _var := MakeTL
 MakeTL ?= MakeTL is UNDEFINED.
@@ -392,9 +412,9 @@ ${_var} := ${MakeTL}
   The one line description for the makefile which included the helpers. This must be defined before including helpers.mk.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
-$(call Add-Help-Section,Stacks,For maintaining segment and macro context.)
+$(call __Queue-Help-Section,Stacks,For maintaining segment and macro context.)
 
 _var := SegID_Stack
 ${_var} :=
@@ -403,7 +423,7 @@ ${_var}
   This is a special variable containing the list of nested makefile segments using their segment IDs. This is used to save and restore segment context as segments are entered and exited.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := Macro_Stack
 ${_var} := $(basename $(notdir $(word 1,${MAKEFILE_LIST})))
@@ -412,7 +432,7 @@ ${_var}
   This is a special variable containing the list of macros and segments which have been entered using Enter-Macro and Enter-Segment. The last item on the stack is emitted with all messages.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := Caller
 ${_var} := ${Macro_Stack}
@@ -421,9 +441,9 @@ ${_var}
   This is the name of the file or macro calling a macro.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
-$(call Add-Help-Section,Callback,Message handling, display and logging.)
+$(call __Queue-Help-Section,Callback,Message handling, display and logging.)
 
 _var := Message_Callback
 ${_var} :=
@@ -432,7 +452,7 @@ ${_var}
   This variable is used to reference a macro which will be called when any message is emitted. This allows special handling of messages when they are reported.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := Message_Safe
 ${_var} := 1
@@ -441,7 +461,7 @@ ${_var}
   This variable is used as a semaphore to indicate when it is safe to call the Message_Callback callback. The purpose is to avoid recursive calls to the callback. The callback is safe when this variable is not empty.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := Warning_Callback
 ${_var} :=
@@ -450,7 +470,7 @@ ${_var}
   This variable is used to reference a macro which will be called when Warn is called. This allows special handling of warnings when they are reported.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := Warning_Safe
 ${_var} := 1
@@ -459,7 +479,7 @@ ${_var}
   This variable is used as a semaphore to indicate when it is safe to call the Warning_Callback callback. The purpose is to avoid recursive calls to the callback. The callback is safe when this variable is not empty.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := Error_Callback
 ${_var} :=
@@ -468,7 +488,7 @@ ${_var}
   This variable is used to reference a macro which will be called when Signal-Error is called. This allows special handling of errors when they are reported.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := Error_Safe
 ${_var} := 1
@@ -477,9 +497,9 @@ ${_var}
   This variable is used as a semaphore to indicate when it is safe to call the Error_Callback callback. The purpose is to avoid recursive calls to the callback. The callback is safe when this variable is not empty.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
-$(call Add-Help-Section,Messaging,Message helpers.)
+$(call __Queue-Help-Section,Messaging,Message helpers.)
 
 _var := DEBUG
 ${_var} ?=
@@ -488,7 +508,7 @@ ${_var}
   Set this variable on the command line or a makefile segment to enable debug messages. If ${_var} is defined in a makefile segment setting ${_var} on the command line will override the previous setting.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := VERBOSE
 ${_var} ?=
@@ -497,7 +517,7 @@ ${_var}
   Set this variable on the command line or a makefile segment to enable verbose messages. If ${_var} is defined in a makefile segment setting ${_var} on the command line will override the previous setting.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := QUIET
 ${_var} ?=
@@ -506,7 +526,7 @@ ${_var} = ${_var}
   Set this variable on the command line to suppress console output. If QUIET is not empty then all messages except error messages are suppressed. They are still added to the message list and can still be displayed using the display-messages goal.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _macro := Div
 define _help
@@ -514,7 +534,7 @@ ${_macro}
   Use this macro to add a divider line between catenated messages.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
 
 endef
@@ -528,7 +548,7 @@ ${_macro}
     2 = The message.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(eval __msg := \
     $(strip $(1)):${Caller}:$(lastword ${Macro_Stack}):$(strip $(2)))
@@ -567,7 +587,7 @@ define _help
     1 = The list of words to be treated as a string.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro}=$(subst ${Space},$${Space},$(strip $(1)))
 
 _macro := Line
@@ -578,7 +598,7 @@ ${_macro}
     NewLine   The newline pattern is appended to the output.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(if ${LogFile},
     $(file >>${LogFile}, )
@@ -599,7 +619,7 @@ ${_macro}
     1 = The message.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Log-Message,....,$(1))
 endef
@@ -614,7 +634,7 @@ ${_macro}
     1 = The message to display.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Log-Message,ATTN,$(1))
 endef
@@ -629,7 +649,7 @@ ${_macro}
     1 = The message to display.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Log-Message,WARN,$(1))
   $(if ${Warning_Callback},
@@ -655,7 +675,7 @@ ${_macro}
     1 = The message to display.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(if ${VERBOSE},
     $(call Log-Message,vrbs,$(1))
@@ -665,7 +685,7 @@ ifneq (${VERBOSE},)
 _V:=v
 endif
 
-$(call Add-Help-Section,MacroContext,For maintaining macro context.)
+$(call __Queue-Help-Section,MacroContext,For maintaining macro context.)
 
 define __Push-Macro
   $(if $(filter $(1),${Macro_Stack}),
@@ -718,7 +738,7 @@ ${_macro}
     2 = An optional list of parameters.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call __Push-Macro,$(1))
   $(if $(and ${DEBUG},$(2)),
@@ -734,12 +754,12 @@ ${_macro}
   Removes the last macro name from the Macro_Stack. This should be called as the last line of the macro.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call __Pop-Macro)
 endef
 
-$(call Add-Help-Section,DebugSupport,Rudimentary makefile debug support.)
+$(call __Queue-Help-Section,DebugSupport,Rudimentary makefile debug support.)
 
 _var := Single_Step
 ${_var} :=
@@ -748,7 +768,7 @@ ${_var}
   This variable is used as a semaphore to indicate when single stepping messages is enabled.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_macro})
 
 _macro := Enable-Single-Step
 define _help
@@ -756,7 +776,7 @@ ${_macro}
   When single step mode is enabled and DEBUG is not empty Step is called every time a macro is entered.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),)
   $(eval Single_Step := yes)
@@ -769,7 +789,7 @@ ${_macro}
   Disables single step mode.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),)
   $(eval Single_Step :=)
@@ -787,7 +807,7 @@ ${_macro}
     1 = The message to display.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ifneq (${DEBUG},)
 define ${_macro}
   $(call Log-Message,dbug,$(1))
@@ -801,12 +821,12 @@ ${_macro}
   Issues a step message and waits for the enter key to be pressed.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(shell read -r -p "Step: Press Enter to continue...")
 endef
 
-$(call Add-Help-Section,CallbackHandling,For message callbacks.)
+$(call __Queue-Help-Section,CallbackHandling,For message callbacks.)
 
 _macro := Set-Message-Callback
 define _help
@@ -816,12 +836,12 @@ ${_macro}
     1 = The name of the macro to call when a message is called. To disable the current handler do not pass this parameter or pass an empty value.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(eval Message_Callback := $(1))
 endef
 
-$(call Add-Help-Section,Errors,For warning and error handling.)
+$(call __Queue-Help-Section,Errors,For warning and error handling.)
 
 _var := Errors
 ${_var} :=
@@ -830,7 +850,7 @@ ${_var}
   When not empty this variable indicates one or more errors have been signaled and the variable ErrorList will contain a list of error messages.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := ErrorList
 ${_var} :=
@@ -839,7 +859,7 @@ ${_var}
   This variable contains the list of errors that have been signaled.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _macro := Set-Warning-Callback
 define _help
@@ -851,7 +871,7 @@ ${_macro}
     1 = The name of the macro to call when a message is called. To disable the current handler do not pass this parameter or pass an empty value.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),Callback=$(1))
   $(eval Warning_Callback := $(1))
@@ -869,7 +889,7 @@ ${_macro}
         current handler do not pass this parameter or pass an empty value.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),Callback=$(1))
   $(eval Error_Callback := $(1))
@@ -899,7 +919,7 @@ ${_macro}
       The handler is called only when this is equal to 1.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(eval ErrorList += ${NewLine}ERR!:${Caller}:$(1))
   $(call Log-Message,ERR!,$(1))
@@ -932,7 +952,7 @@ define _help
 Reset the errors flag so that past errors won't influence subsequent decisions.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(eval Errors :=)
 endef
@@ -942,7 +962,7 @@ define _help
 Enable logging messages to the log file.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(if ${LogFile},
   ,
@@ -965,7 +985,7 @@ define _help
 Disable logging messages to the log file.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(if ${LogFile},
     $(if $(filter ${SubMake},${True}),
@@ -979,7 +999,7 @@ endef
 
 #--------------
 
-$(call Add-Help-Section,VarMacros,For manipulating variable values.)
+$(call __Queue-Help-Section,VarMacros,For manipulating variable values.)
 
 _macro := Inc-Var
 define _help
@@ -991,7 +1011,7 @@ ${_macro}
     The value of the variable incremented by 1.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(eval $(1):=$(shell expr ${$(1)} + 1))
 endef
@@ -1006,7 +1026,7 @@ ${_macro}
     The value of the variable decremented by 1.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(eval $(1):=$(shell expr ${$(1)} - 1))
 endef
@@ -1021,7 +1041,7 @@ define _help
     The value of the variable increased by the value.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(eval $(1):=$(shell expr ${$(1)} + $(2)))
 endef
@@ -1036,7 +1056,7 @@ define _help
     The value of the variable decreased by the value.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(eval $(1):=$(shell expr ${$(1)} - $(2)))
 endef
@@ -1052,7 +1072,7 @@ ${_macro}
     If the two values are the same then the value is returned. Otherwise an empty value is returned.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = $(filter $(1),$(2))
 
 _macro := To-Shell-Var
@@ -1065,7 +1085,7 @@ ${_macro}
     A string which can be used as the name of a shell variable.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = _$(subst /,_,$(subst .,_,$(subst -,_,$(1))))
 
 _macro := To-Lower
@@ -1074,7 +1094,7 @@ ${_macro}
   Transform all upper case characters to lower case in a string.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = $(shell tr '[:upper:]' '[:lower:]' <<< $(1))
 
 _macro := To-Upper
@@ -1083,10 +1103,10 @@ ${_macro}
   Transform all lower case characters to upper case in a string.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = $(shell tr '[:lower:]' '[:upper:]' <<< $(1))
 
-$(call Add-Help-Section,VarTesting,For checking variable contents.)
+$(call __Queue-Help-Section,VarTesting,For checking variable contents.)
 
 _macro := Is-Not-Defined
 define _help
@@ -1096,7 +1116,7 @@ ${_macro}
     1 = The name of the variable to check.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = $(filter undefined,$(flavor $(1)))
 
 _macro := Require
@@ -1109,7 +1129,7 @@ ${_macro}
     A list of undefined variables.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
 $(strip \
   $(call Enter-Macro,$(0),Required: $(1))
@@ -1146,7 +1166,7 @@ ${_macro}
     A non-empty string if the name is a member of the list.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
 $(strip
   $(call Enter-Macro,$(0),Name=$(1) Values:$(call To-String,$(2)))
@@ -1164,7 +1184,7 @@ ${_macro}
     2 = The value.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 OverridableVars :=
 define ${_macro}
   $(call Enter-Macro,$(0),Var=$(1) Val=$(2))
@@ -1192,7 +1212,7 @@ ${_macro}
     3 = The name of the variable in which to return the result of the compare.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),$(strip\
     String1=$(call To-String,$(1))\
@@ -1224,7 +1244,7 @@ endef
 
 #++++++++++++++
 # Makefile segment handling.
-$(call Add-Help-Section,SegManagement,For managing segments.)
+$(call __Queue-Help-Section,SegManagement,For managing segments.)
 
 _var := SegAttributes
 ${_var} := SegID UserSegID SegUN Seg SegP SegD SegF SegV SegTL SegHL
@@ -1253,7 +1273,7 @@ ${_var} = ${${_var}}
       A list of symbol names for help messages.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 $(call Add-Help,SegUNs)
 
@@ -1269,7 +1289,7 @@ ${_macro}
     2 = The variable in which to store the UN.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),Path=$(1) Out=$(2))
   $(call Verbose,MAKEFILE_LIST:${MAKEFILE_LIST})
@@ -1293,7 +1313,7 @@ ${_var}
   The pseudo unique name of the first segment in the makefile list.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _var := LastSegUN
 ${_var} :=
@@ -1302,7 +1322,7 @@ ${_var}
   The unique name of the last included segment.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _macro := Last-Segment-UN
 define _help
@@ -1313,7 +1333,7 @@ ${_macro}
       The pseudo unique name for the last segment in MAKEFILE_LIST.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),)
   $(call Path-To-UN,$(lastword ${MAKEFILE_LIST}),LastSegUN)
@@ -1327,7 +1347,7 @@ ${_macro}
   Returns the ID of the most recently included makefile segment.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = $(words ${MAKEFILE_LIST})
 
 _macro := Last-Segment-File
@@ -1336,7 +1356,7 @@ ${_macro}
   Returns the file name of the most recently included makefile segment.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = $(lastword ${MAKEFILE_LIST})
 
 _macro := Last-Segment-Basename
@@ -1345,7 +1365,7 @@ ${_macro}
   Returns the basename of the most recently included makefile segment.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = \
   $(basename $(notdir $(lastword ${MAKEFILE_LIST})))
 
@@ -1355,7 +1375,7 @@ ${_macro}
   Returns the name of the most recently included makefile segment.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = $(call To-Shell-Var,$(call Last-Segment-Basename))
 
 _macro := Last-Segment-Path
@@ -1364,7 +1384,7 @@ ${_macro}
   Returns the directory of the most recently included makefile segment.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = \
   $(realpath $(dir $(lastword ${MAKEFILE_LIST})))
 
@@ -1374,7 +1394,7 @@ ${_macro}
   Returns the directory of the most recently included makefile segment.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = \
   $(lastword $(subst /, ,$(subst /^,,\
     $(dir $(realpath $(lastword ${MAKEFILE_LIST})))^)))
@@ -1385,7 +1405,7 @@ ${_macro}
   Returns a unique ID for the makefile segment corresponding to ID.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = $(word $(1),${SegUNs})
 
 _macro := Get-Segment-File
@@ -1394,7 +1414,7 @@ ${_macro}
   Returns the file name of the makefile segment corresponding to ID.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = $(word $(1),${MAKEFILE_LIST})
 
 _macro := Get-Segment-Basename
@@ -1405,7 +1425,7 @@ ${_macro}
     1 = ID of the segment.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = \
   $(basename $(notdir $(word $(1),${MAKEFILE_LIST})))
 
@@ -1417,7 +1437,7 @@ ${_macro}
     1 = ID of the segment.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = \
   $(subst -,_,$(call Get-Segment-Basename,$(1)))
 
@@ -1429,7 +1449,7 @@ ${_macro}
     1 = ID of the segment.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = \
   $(realpath $(dir $(word $(1),${MAKEFILE_LIST})))
 
@@ -1442,7 +1462,7 @@ ${_macro}
     1 = ID of the segment.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = \
   $(lastword $(subst /, ,$(subst /=,,\
     $(dir $(realpath $(word $(1),${MAKEFILE_LIST})))=)))
@@ -1455,7 +1475,7 @@ ${_var}
   The list of paths to search to find or use a segment.
 endef
 help-${_var} := $(call _help)
-$(call Add-Help,${_var})
+$(call __Queue-Help, ${_var})
 
 _macro := Add-Segment-Path
 define _help
@@ -1465,7 +1485,7 @@ ${_macro}
     1 = The path(s) to add.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),Path=$(1))
   $(foreach __p,$(1),
@@ -1492,7 +1512,7 @@ ${_macro}
     2 = The name of the variable in which to store the full path to the selected segment.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),Seg=$(1) Out=$(2))
   $(eval $(2) := )
@@ -1536,7 +1556,7 @@ ${_macro}
   A template for new make segments can be generated using the Gen-Segment-Text macro (below).
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),Seg=$(1) MsgType=$(2))
   $(call Find-Segment,$(1),__segf)
@@ -1607,7 +1627,7 @@ ${_macro}
     1 = ID of the segment.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),SegID=$(1))
 
@@ -1616,7 +1636,7 @@ define ${_macro}
   $(call Attention,SegID $(1) UN:${__un})
   $(call Verbose,Setting context for segment: ${__un})
   $(foreach __att,${SegAttributes},
-    $(eval ${__att} := ${${__un}.${__att}})
+    $(eval ${__att} = ${${__un}.${__att}})
     $(call Verbose,Setting: ${__att} = ${${__att}})
   )
 
@@ -1645,7 +1665,7 @@ define ${_macro}
     $(eval ${FirstSegUN}.SegF := $(call Get-Segment-File,1))
     $(eval ${FirstSegUN}.SegV := $(call To-Shell-Var,${FirstSegUN}))
     $(eval ${FirstSegUN}.SegTL := $(1))
-    $(eval ${FirstSegUN}.SegHL := File: ${${FirstSegUN}.SegF})
+    $(eval ${FirstSegUN}.SegHL := )
     $(call Set-Segment-Context,1)
   ,
     $(eval __mf := $(notdir $(word ${__pc},${MAKEFILE_LIST})))
@@ -1662,7 +1682,7 @@ ${_macro}
   Add the last segment to the list of segments and init the segment attributes.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),)
   $(call Last-Segment-UN)
@@ -1691,7 +1711,7 @@ ${_macro}
     1 = A one line description of the segment.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),Desc:$(call To-String,$(1)))
   $(call __Init-Last-Segment)
@@ -1711,7 +1731,7 @@ ${_macro}
   This initializes the help message for the segment and restores the context of the previous segment.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),)
   $(call Verbose,Exiting segment: ${${SegUN}.Seg})
@@ -1727,7 +1747,7 @@ ${_macro}
   This handles the case where a segment is being used more than once or the current segment is attempting to use the same prefix as a previously loaded segment. This should be called only when the segment ID for the seg is already defined.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),)
   $(call Verbose,\
@@ -1827,7 +1847,7 @@ ${_macro}
 $(call Gen-Segment-Text,sample-seg,This is a sample segment.)
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 
 _macro := Gen-Segment-File
 define _help
@@ -1839,7 +1859,7 @@ ${_macro}
     3 = A one line description.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),Seg=$(1) Path=$(2) Desc=$(call To-String,$(3)))
   $(file >$(2),$(call Gen-Segment-Text,$(1),$(3)))
@@ -1858,6 +1878,8 @@ ${_macro}
     3 = The new segment name.
     4 = The full path to the new segment file.
 endef
+help-${_macro} := $(call _help)
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),Seg=$(1) Path=$(2) NewSeg=$(3) NewPath=$(4))
   $(call Verbose,Deriving $(3) from $(1).)
@@ -1881,7 +1903,7 @@ endef
 
 #++++++++++++++
 # Goal management.
-$(call Add-Help-Section,Goals,For checking and handling make goals.)
+$(call __Queue-Help-Section,Goals,For checking and handling make goals.)
 
 _macro := Resolve-Help-Goals
 define _help
@@ -1891,7 +1913,7 @@ ${_macro}
   NOTE: All segments for which help is referenced must be in the segment search path (Add-Segment-Path).
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),)
   $(call Verbose,Resolving help goals.)
@@ -1926,7 +1948,7 @@ ${_macro}
     1 = The goal to check.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 ${_macro} = $(or $(filter all,${Goals}),$(filter $(1),${Goals}))
 
 _macro := Add-To-Manifest
@@ -1939,7 +1961,7 @@ ${_macro}
     3 = The value to add to the list.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),List=$(1) OptVar=$(2) Val=$(3))
   $(call Verbose,Adding $(3) to $(1))
@@ -1953,7 +1975,7 @@ endef
 
 #++++++++++++++
 # Directories and files.
-$(call Add-Help-Section,PathsAndFiles,Macros for paths and files.)
+$(call __Queue-Help-Section,PathsAndFiles,Macros for paths and files.)
 
 _macro := Basenames-In
 define _help
@@ -1963,7 +1985,7 @@ ${_macro}
     1 = The glob pattern including path.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
 $(sort $(foreach f,$(wildcard $(1)),$(basename $(notdir ${f}))))
 endef
@@ -1976,7 +1998,7 @@ ${_macro}
     1 = The path to the directory.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(sort \
     $(strip $(foreach d,$(shell find $(1) -mindepth 1 -maxdepth 1 -type d),\
@@ -1988,7 +2010,7 @@ endef
 
 #++++++++++++++
 # Other helpers.
-$(call Add-Help-Section,Other,Other macros for flow control.)
+$(call __Queue-Help-Section,Other,Other macros for flow control.)
 
 _macro := Confirm
 define _help
@@ -1999,7 +2021,7 @@ ${_macro}
     2 = The expected positive response.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
 $(strip $(filter $(2),$(shell read -r -p "$(1) [$(2)|N]: "; echo $$REPLY)))
 endef
@@ -2012,7 +2034,7 @@ ${_macro}
     1 = The prompt for the response.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
 $(strip $(shell read -r -p "$(1): "; echo $$REPLY))
 endef
@@ -2023,7 +2045,7 @@ ${_macro}
   Wait until the Enter key is pressed.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(shell read -r -p "Press Enter to continue...")
 endef
@@ -2038,7 +2060,7 @@ ${_macro}
     If the return code equals 0 then nothing is returned. Otherwise, the return code is returned.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
 $(strip
   $(call Enter-Macro,$(0),RC=$(lastword $(1)))
@@ -2062,7 +2084,7 @@ ${_macro}
       The return code from the output.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),Cmd=$(call To-String,$(1)))
   $(call Verbose,Command:$(1) )
@@ -2095,7 +2117,7 @@ ${_macro}
     3 = An optional prompt. This generates a y/N confirmation and the goal is generated only if the response is y.
 endef
 help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
+$(call __Queue-Help, ${_macro})
 define ${_macro}
 $(call Enter-Macro,$(0),\
   Goal=$(1) \
@@ -2136,6 +2158,13 @@ $(call __Init-Makefile-Context,${MakeTL})
 
 $(call Enter-Segment,Helper macros for makefiles.)
 $(call Verbose,In segment:${SegUN})
+
+# Now can finally add the queued help messages.
+$(call Verbose,Appending queued help messages.)
+
+$(call Verbose,${SegUN}.SegHL = ${${SegUN}.SegHL})
+${SegUN}.SegHL += ${__HelpQueue}
+$(call Verbose,${SegUN}.SegHL = ${${SegUN}.SegHL})
 
 # These are helper functions for shell scripts (Bash).
 $(call Add-Help-Section,ShellHelpers,Helper functions for shell scripts .)
