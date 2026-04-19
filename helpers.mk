@@ -43,6 +43,9 @@ _private-macro or _Private-Macro
 endef
 help-${SegID} := $(call _help)
 
+# For generating text as part of a make file.
+. :=
+
 define __Set-First-Path
   $(eval $(2) := )
   $(eval __seg := $(basename $(notdir $(1))))
@@ -1789,9 +1792,9 @@ $${LastSegUN}: $${SegF}
 # +++++
 # Postamble
 # Define help only if needed.
-$.__h := $$(or $\
-  $$(call Is-Goal,help-$${Seg}),$\\
-  $$(call Is-Goal,help-$${SegUN}),$\\
+$.__h := $$(or \$.
+  $$(call Is-Goal,help-$${Seg}),\$.
+  $$(call Is-Goal,help-$${SegUN}),\$.
   $$(call Is-Goal,help-$${SegID}))
 $.ifneq ($${__h},)
 $.define __help
