@@ -2590,6 +2590,7 @@ help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
   $(call Info,Declaring callable macro:$(1))
+  $(eval $(1).PARMS ?= )
   $(eval Callable_Macros += $(1))
   $(eval help-Callable_Macros += $(1))
 endef
@@ -2735,6 +2736,10 @@ $(call Display-Help-List,${SegID})
 endef
 ${__h} := ${__help}
 endif # help goal
+
+$(call Declare-Callable-Macro,Display-Seg-Attributes)
+$(call Declare-Callable-Macro,Display-Segs)
+
 $(call Verbose,Last-Segment-ID:$(call Last-Segment-ID))
 $(call Verbose,${LastSegUN}.SegID:${${LastSegUN}.SegID})
 $(call Exit-Segment)
