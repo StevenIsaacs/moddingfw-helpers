@@ -65,24 +65,6 @@ define __Get-Segment-UN
   $(word $(1),${SegUNs})
 endef
 
-_macro := Add-Help-Section
-define _help
-${_macro}
-  Declare a help message section header and add it to the help list for the current context identified by SegID (see help-SegAttributes).
-  Parameters:
-    1 = The name of the section to declare help for.
-    2 = The section description.
-endef
-define ${_macro}
-$(info ${_macro}: ${SegID})
-  $(eval __un := $(call __Get-Segment-UN,${SegID}))
-  $(eval __hn := help-${__un}.$(1))
-  $(eval ${__hn} := ---- $(1) ----)
-  $(eval ${__hn} += $(2))
-  $(eval ${__un}.SegHL += ${__hn})
-endef
-help-${_macro} := $(call _help)
-
 _macro := Add-Help
 define _help
 ${_macro}
@@ -95,6 +77,24 @@ define ${_macro}
   $(eval ${__un}.SegHL += $(1))
 endef
 help-${_macro} := $(call _help)
+
+_macro := Add-Help-Section
+define _help
+${_macro}
+  Declare a help message section header and add it to the help list for the current context identified by SegID (see help-SegAttributes).
+  Parameters:
+    1 = The name of the section to declare help for.
+    2 = The section description.
+endef
+define ${_macro}
+  $(eval __un := $(call __Get-Segment-UN,${SegID}))
+  $(eval __hn := ${__un}.$(1))
+  $(eval help-${__hn} := ---- $(1) ----)
+  $(eval help-${__hn} += $(2))
+  $(call Add-Help, ${__hn})
+endef
+help-${_macro} := $(call _help)
+
 $(call Add-Help,Help-List)
 $(call Add-Help-Section,HelpL,\
   Use these macros to build and display help messages.)
