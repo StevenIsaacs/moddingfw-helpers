@@ -1223,7 +1223,7 @@ define ${_macro}
     $(eval __i := 0)
     $(foreach __w,${$(1)},
       $(call Inc-Var,__i)
-      $(call Checking words at:${__i})
+      $(call Verbose,Checking words at:${__i})
       $(if $(filter ${__w},$(word ${__i},${$(2)})),
       ,
         $(call Verbose,Difference found.)

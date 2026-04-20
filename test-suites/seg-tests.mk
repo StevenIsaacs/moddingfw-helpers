@@ -102,7 +102,7 @@ define ${_macro}
     ${SegUN}.SegP:${SegP} \
     ${SegUN}.SegD:${SegD} \
     ${SegUN}.SegF:${SegF} \
-  )
+    ,:)
   $(call Exit-Macro)
 endef
 

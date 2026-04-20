@@ -8,7 +8,7 @@ $(call Enter-Segment,For test only.)
 # -----
 
 $(call Test-Info,Path:$(call Last-Segment-Path))
-$(call Verify-Seg-Attributes,d3.td3)
+$(call Verify-Seg-Context,d3.td3)
 
 $(call Test-Info,Using seg in same directory.)
 $(call Expect-No-Warning)
