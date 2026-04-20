@@ -2,3 +2,4 @@
 .moddingfw
 .helpers
 tmp
+*.log

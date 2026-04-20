@@ -221,7 +221,7 @@ define ${.TestUN}
   $(if ${MatchFound},
     $(call PASS,MatchFound is TRUE.)
   ,
-    $(call FAIL.MatchFound is FALSE.)
+    $(call FAIL,MatchFound is FALSE.)
   )
   $(if $(filter 1,${MatchCount}),
     $(call PASS,Message was found ${MatchCount} time.)
@@ -232,7 +232,7 @@ define ${.TestUN}
     $(call Test-Info,MismatchList=${MismatchList})
     $(call FAIL,MismatchFound is TRUE.)
   ,
-    $(call PASS.MismatchFound is FALSE.)
+    $(call PASS,MismatchFound is FALSE.)
   )
   $(if $(filter 0,${MismatchCount}),
     $(call PASS,Message was found ${MatchCount} time.)
@@ -250,7 +250,7 @@ define ${.TestUN}
   $(if ${MatchFound},
     $(call FAIL,MatchFound is TRUE.)
   ,
-    $(call PASS.MatchFound is FALSE.)
+    $(call PASS,MatchFound is FALSE.)
   )
   $(if $(filter 0,${MatchCount}),
     $(call PASS,Message was found ${MatchCount} time.)
@@ -260,7 +260,7 @@ define ${.TestUN}
   $(if ${MismatchFound},
     $(call PASS,MismatchFound is TRUE.)
   ,
-    $(call FAIL.MismatchFound is FALSE.)
+    $(call FAIL,MismatchFound is FALSE.)
   )
   $(if $(filter 1,${MismatchFound}),
     $(call PASS,Message was found ${MismatchFound} time.)
@@ -299,7 +299,7 @@ define ${.TestUN}
   $(if ${MatchFound},
     $(call PASS,MatchFound is TRUE.)
   ,
-    $(call FAIL.MatchFound is FALSE.)
+    $(call FAIL,MatchFound is FALSE.)
   )
   $(if $(filter 3,${MatchCount}),
     $(call PASS,Message was found ${MatchCount} time.)
@@ -309,7 +309,7 @@ define ${.TestUN}
   $(if ${MismatchFound},
     $(call PASS,MismatchFound is TRUE.)
   ,
-    $(call FAIL.MismatchFound is FALSE.)
+    $(call FAIL,MismatchFound is FALSE.)
   )
   $(if $(filter 1,${MismatchFound}),
     $(call PASS,Message was found ${MismatchFound} time.)

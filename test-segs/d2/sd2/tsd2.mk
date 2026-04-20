@@ -8,7 +8,7 @@ $(call Enter-Segment,For test only.)
 # -----
 
 $(call Test-Info,Path:$(call Last-Segment-Path))
-$(call Verify-Seg-Attributes,sd2.tsd2)
+$(call Verify-Seg-Context,sd2.tsd2)
 
 # +++++
 # Postamble

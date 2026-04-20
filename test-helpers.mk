@@ -213,6 +213,15 @@ endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
 
+_var := .StepC
+${_var} :=
+define _help
+${_var}
+  The running count of test steps.
+endef
+help-${_var} := $(call _help)
+$(call Add-Help,${_var})
+
 _var := Self
 ${_var} :=
 define _help
@@ -1219,6 +1228,7 @@ define ${_macro}
       $(call Warn,Name conflict with test ${.TestUN}.)
     ,
       $(call Test-Info,++++ Test:$(1))
+      $(call Declare-Contexts,${.TestUN})
       $(call Add-Tests-To-Contexts,Session Declared ${.SuiteN},${.TestUN})
       $(eval ${.TestUN}.ID := ${Declared.TestC})
     )
@@ -1249,8 +1259,9 @@ define ${_macro}
     $(eval Prereq.Running := 1)
     $(call Verbose,$(1) prereqs:${$(1).Prereqs})
     $(foreach _prereq,${$(1).Prereqs},
+      $(call Verbose, Run status: ${_prereq} = ${${_prereq}.Completed})
       $(if ${${_prereq}.Completed},
-        $(eval ${_prereq}.Running := )
+        $(eval undefine ${_prereq}.Running)
         $(call Test-Info,Test ${_prereq} has already completed -- skipping.)
         $(if ${${_prereq}.Failed},
           $(call Test-Info,Test ${_prereq} FAILED previously.)
@@ -1261,19 +1272,17 @@ define ${_macro}
         $(eval _st := $(call Get-Suite-Name,${_prereq}))
         $(call Verbose,Prerequisite suite:${_st})
 
-        $(if ${${_st}.SegID},
-          $(call Verbose,The suite containing ${_prereq} is in use.)
+        $(if $(call Is-Not-Defined,${_st}.SegID),
+          $(call Use-Segment,${_st},)
         ,
-          $(call Use-Segment,${_st})
+          $(call Verbose,The suite containing ${_prereq} is in use.)
         )
         $(call Verbose,Prereq ${_prereq} origin:$(origin ${_prereq}))
-        $(if $(filter undefined,$(origin ${_prereq})),
+        $(if $(call Is-Not-Defined,${_prereq}),
           $(call Signal-Error,Prereq test ${_prereq} is undefined.)
           $(eval Prereq.Failed := 1)
         ,
-          $(if ${${_prereq}.Running},
-            $(call Signal-Error,Dependency loop for ${_prereq} detected.)
-          ,
+          $(if $(call Is-Not-Defined,${_prereq}.Running),
             $(eval ${_prereq}.Running := 1)
             $(call Run-Prerequisites,${_prereq})
             $(eval RunContext := Prereq)
@@ -1287,11 +1296,13 @@ define ${_macro}
               $(call Test-Info,Test ${_prereq} FAILED -- skipping.)
               $(eval Prereq.Failed := 1)
             )
+          ,
+            $(call Signal-Error,Dependency loop for ${_prereq} detected.)
           )
         )
       )
     )
-    $(eval Prereq.Running :=)
+    $(eval undefine Prereq.Running)
   )
   $(call Exit-Macro)
 endef
@@ -1311,6 +1322,7 @@ define ${_macro}
   $(if $(1),
     $(call Init-Context-Results,Run)
     $(foreach _t,${$(1)},
+      $(call Verbose,${_t}.Completed = ${${_t}.Completed})
       $(if ${${_t}.Completed},
         $(call Test-Info,Test ${_t} has already completed -- skipping.)
       ,
@@ -1378,14 +1390,14 @@ define ${_macro}
     ,
       $(eval _suite := ${Seg})
     )
-    $(if ${${_suite}.ID},
-      $(call Verbose,Test suite ${_suite} has already been loaded.)
-    ,
+    $(if $(filter undefined,$(origin ${_suite}.ID)),
       $(if $(wildcard ${SUITES_PATH}/${_suite}.mk),
         $(call Use-Segment,${_suite})
       ,
         $(call Signal-Error,Test suite does not exist: ${_suite})
       )
+    ,
+      $(call Verbose,Test suite ${_suite} has already been loaded.)
     )
     $(if ${_t},
       $(eval _tl := $(subst +, ,${_t}))

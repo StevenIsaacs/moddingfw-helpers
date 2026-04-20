@@ -170,7 +170,7 @@ ${.TestUN}
 endef
 help-${.TestUN} := $(call _help)
 $(call Add-Help,${.TestUN})
-${.TestUN}.Prereqs := ${.SuiteN}.Sticky test-vars.Compare-Strings
+${.TestUN}.Prereqs := ${.SuiteN}.Sticky var-tests.Compare-Strings
 define ${.TestUN}
   $(call Enter-Macro,$(0))
   $(call Begin-Test,$(0))
@@ -245,7 +245,7 @@ define ${.TestUN}
   $(eval VERBOSE=1)
   $(call Sticky,${_vn1}=${_vn1v})
   $(eval VERBOSE=)
-  $(call Expect-Vars,${_vn1}:${_vn1v})
+  $(call Expect-Vars,${_vn1}:${_vn1v},:)
   $(call Test-Info,Sticky vars:${StickyVars})
   $(foreach _f,$(wildcard ${STICKY_PATH}/*),
     $(call Test-Info,Var file:${_f})
