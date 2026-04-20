@@ -213,6 +213,15 @@ endef
 help-${_var} := $(call _help)
 $(call Add-Help,${_var})
 
+_var := .StepC
+${_var} :=
+define _help
+${_var}
+  The running count of test steps.
+endef
+help-${_var} := $(call _help)
+$(call Add-Help,${_var})
+
 _var := Self
 ${_var} :=
 define _help
