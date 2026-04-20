@@ -71,8 +71,6 @@ endef
 _var := SegUNs
 # For top level makefile.
 $(call __Set-First-Path,$(firstword ${MAKEFILE_LIST}),${_var})
-# Add self.
-${_var} += ${SegUN}
 define _help
 ${_var}
   The list of pseudo unique names for all loaded segments. This can be indexed using SegID.
