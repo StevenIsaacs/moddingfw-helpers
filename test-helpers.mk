@@ -1259,7 +1259,15 @@ define ${_macro}
     $(eval Prereq.Running := 1)
     $(call Verbose,$(1) prereqs:${$(1).Prereqs})
     $(foreach _prereq,${$(1).Prereqs},
-      $(if $(call Is-Not-Defined,${_prereq}.Completed),
+      $(call Verbose, Run status: ${_prereq} = ${${_prereq}.Completed})
+      $(if ${${_prereq}.Completed},
+        $(eval undefine ${_prereq}.Running)
+        $(call Test-Info,Test ${_prereq} has already completed -- skipping.)
+        $(if ${${_prereq}.Failed},
+          $(call Test-Info,Test ${_prereq} FAILED previously.)
+          $(eval Prereq.Failed := 1)
+        )
+      ,
         $(call Test-Info,Running prerequisite:${_prereq}.)
         $(eval _st := $(call Get-Suite-Name,${_prereq}))
         $(call Verbose,Prerequisite suite:${_st})
@@ -1291,13 +1299,6 @@ define ${_macro}
           ,
             $(call Signal-Error,Dependency loop for ${_prereq} detected.)
           )
-        )
-      ,
-        $(eval undefine ${_prereq}.Running)
-        $(call Test-Info,Test ${_prereq} has already completed -- skipping.)
-        $(if ${${_prereq}.Failed},
-          $(call Test-Info,Test ${_prereq} FAILED previously.)
-          $(eval Prereq.Failed := 1)
         )
       )
     )
