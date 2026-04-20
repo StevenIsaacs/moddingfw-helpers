@@ -1378,14 +1378,14 @@ define ${_macro}
     ,
       $(eval _suite := ${Seg})
     )
-    $(if ${${_suite}.ID},
-      $(call Verbose,Test suite ${_suite} has already been loaded.)
-    ,
+    $(if $(filter undefined,$(origin ${_suite}.ID)),
       $(if $(wildcard ${SUITES_PATH}/${_suite}.mk),
         $(call Use-Segment,${_suite})
       ,
         $(call Signal-Error,Test suite does not exist: ${_suite})
       )
+    ,
+      $(call Verbose,Test suite ${_suite} has already been loaded.)
     )
     $(if ${_t},
       $(eval _tl := $(subst +, ,${_t}))

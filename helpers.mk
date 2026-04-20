@@ -1560,16 +1560,15 @@ define ${_macro}
   $(call Find-Segment,$(1),__segf)
   $(if ${__segf},
     $(call Path-To-UN,${__segf},__sun)
-    $(if ${${__sun}.SegID},
-      $(call Verbose,Segment $(1) is already loaded.)
-    ,
+    $(if $(filter undefined,$(origin ${__sun}.SegID)),
       $(call Verbose,Using segment:${__segf})
       $(eval -include ${__segf})
-      $(if ${${__sun}.SegID},
-      ,
+      $(if $(filter undefined,$(origin ${__sun}.SegID)),
         $(call Attention,Loaded non-ModdingFW format segment.)
         $(call __Init-Last-Segment)
       )
+    ,
+      $(call Verbose,Segment $(1) is already loaded.)
     )
   ,
     $(if $(2),
