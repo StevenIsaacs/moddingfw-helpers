@@ -581,7 +581,11 @@ define ${.TestUN}
     $(call Display-Seg-Attributes,${__un})
     $(call Set-Segment-Context,${${__un}.SegID})
     $(foreach __att,${SegAttributes},
-      $(call Expect-Vars,${__att}=${${__un}.${__att}})
+      $(if $(or $(call Are-Equal,${__att},SegTL),
+                 $(call Are-Equal,${__att},SegHL)),
+      ,
+        $(call Expect-Vars,${__att}=${${__un}.${__att}})
+      )
     )
   )
   $(call Test-Info,Restoring context for ${__SegUN} ID ${${__SegUN}.SegID}.)

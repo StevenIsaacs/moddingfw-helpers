@@ -1321,7 +1321,10 @@ define ${_macro}
   $(if $(1),
     $(call Init-Context-Results,Run)
     $(foreach _t,${$(1)},
-      $(if $(call Is-Not-Defined,${_t}.Completed),
+      $(call Verbose,${_t}.Completed = ${${_t}.Completed})
+      $(if ${${_t}.Completed},
+        $(call Test-Info,Test ${_t} has already completed -- skipping.)
+      ,
         $(call Test-Info,Running test:${_t})
         $(call Test-Info,Test: ${_t})
         $(if ${${_t}.Prereqs},
@@ -1335,8 +1338,6 @@ define ${_macro}
           $(call ${_t})
           $(eval RunContext := )
         )
-      ,
-        $(call Test-Info,Test ${_t} has already completed -- skipping.)
       )
     )
     $(call Report-Test-Results,Run)
