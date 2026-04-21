@@ -1339,15 +1339,6 @@ define ${_macro}
   $(call Exit-Macro)
 endef
 
-_macro := Last-Segment-ID
-define _help
-${_macro}
-  Returns the ID of the most recently included makefile segment.
-endef
-help-${_macro} := $(call _help)
-$(call __Queue-Help, ${_macro})
-${_macro} = $(words ${MAKEFILE_LIST})
-
 _macro := Last-Segment-File
 define _help
 ${_macro}
@@ -1397,10 +1388,22 @@ ${_macro} = \
   $(lastword $(subst /, ,$(subst /^,,\
     $(dir $(realpath $(lastword ${MAKEFILE_LIST})))^)))
 
+_macro := New-Segment-ID
+define _help
+${_macro}
+  Returns the ID of the most recently included makefile segment.
+endef
+help-${_macro} := $(call _help)
+$(call __Queue-Help, ${_macro})
+${_macro} = $(words ${SegUNs})
+
 _macro := Get-Segment-UN
 define _help
 ${_macro}
-  Returns a unique ID for the makefile segment corresponding to ID.
+  Returns a unique name for the makefile segment corresponding to ID.
+  Parameters:
+    1 = ID of the segment.
+
 endef
 help-${_macro} := $(call _help)
 $(call __Queue-Help, ${_macro})
@@ -1410,6 +1413,8 @@ _macro := Get-Segment-File
 define _help
 ${_macro}
   Returns the file name of the makefile segment corresponding to ID.
+  Parameters:
+    1 = ID of the segment.
 endef
 help-${_macro} := $(call _help)
 $(call __Queue-Help, ${_macro})
@@ -1549,6 +1554,8 @@ ${_macro}
 
   Makefile segments should use the standard preamble and postamble to avoid inclusion of the same file more than once and to use standardized ID variables.
 
+  Segments which do not use a standard preamble will trigger an error. Non-standard segments should be included normally.
+
   Each loaded segment is added to SegTLeps to trigger rebuilds when a a segment is changed. NOTE: All components will be rebuilt in this case because it is unknown if a change in a segment will cause a change in the build output of another segment.
 
   A template for new make segments can be generated using the Gen-Segment-Text macro (below).
@@ -1564,8 +1571,7 @@ define ${_macro}
       $(call Verbose,Using segment:${__segf})
       $(eval -include ${__segf})
       $(if $(filter undefined,$(origin ${__sun}.SegID)),
-        $(call Attention,Loaded non-ModdingFW format segment.)
-        $(call __Init-Last-Segment)
+        $(call Signal-Error,Loaded non-ModdingFW format segment. Use include instead.)
       )
     ,
       $(call Verbose,Segment $(1) is already loaded.)
@@ -1687,7 +1693,7 @@ define ${_macro}
   $(call Verbose,Initializing segment context for segment: ${SegID})
   $(eval SegUNs += ${LastSegUN})
   $(eval ${LastSegUN}.UserSegID := ${SegID})
-  $(eval SegID := $(call Last-Segment-ID))
+  $(eval SegID := $(call New-Segment-ID))
   $(eval ${LastSegUN}.SegID := ${SegID})
   $(eval ${LastSegUN}.SegUN := ${LastSegUN})
   $(eval ${LastSegUN}.Seg := $(call Last-Segment-Basename))
@@ -2149,7 +2155,7 @@ endef
 # set by Enter-Segment and used by Exit-Segment will have a valid value.
 $(call Verbose,MAKEFILE_LIST:${MAKEFILE_LIST})
 $(call Verbose,$(realpath $(firstword ${MAKEFILE_LIST})))
-$(call Verbose,__i:$(call Last-Segment-ID))
+$(call Verbose,__i:$(call New-Segment-ID))
 # Initialize the top level context.
 $(call __Init-Makefile-Context,${MakeTL})
 
@@ -2737,7 +2743,7 @@ endif # help goal
 $(call Declare-Callable-Macro,Display-Seg-Attributes)
 $(call Declare-Callable-Macro,Display-Segs)
 
-$(call Verbose,Last-Segment-ID:$(call Last-Segment-ID))
+$(call Verbose,New-Segment-ID:$(call New-Segment-ID))
 $(call Verbose,${LastSegUN}.SegID:${${LastSegUN}.SegID})
 $(call Exit-Segment)
 else # Already loaded.
