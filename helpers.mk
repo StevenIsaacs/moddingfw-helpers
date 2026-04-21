@@ -1571,7 +1571,7 @@ define ${_macro}
       $(call Verbose,Using segment:${__segf})
       $(eval -include ${__segf})
       $(if $(filter undefined,$(origin ${__sun}.SegID)),
-        $(call Signal-Error,Loaded non-ModdingFW format segment. Use include instead.)
+        $(call Warn,Loaded non-ModdingFW format segment -- ${__sun}. Use include instead.)
       )
     ,
       $(call Verbose,Segment $(1) is already loaded.)
