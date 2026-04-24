@@ -2,9 +2,9 @@
 # <purpose for this segment>
 #----------------------------------------------------------------------------
 # +++++
-$(call Last-Segment-UN)
-ifndef ${LastSegUN}.SegID
-$(call Enter-Segment,<purpose for this segment>.)
+# Optional wrapper to avoid initializing twice.
+ifndef ${SegUN}.Initialized
+${SegUN}.Initialized := 1
 # -----
 
 _macro := ${SegUN}.init
@@ -39,7 +39,7 @@ ${__h} := ${__help}
 endif # help goal message.
 
 $(call Exit-Segment)
-else # <u>SegID exists
-$(call Check-Segment-Conflicts)
-endif # <u>SegID
+else # Seg exists
+$(call Info: ${SegUN} already initialized.)
+endif # SegUN
 # -----

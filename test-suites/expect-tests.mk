@@ -1,11 +1,6 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Verify the helper macros for expecting values and results.
 #----------------------------------------------------------------------------
-# +++++
-$(call Last-Segment-UN)
-ifndef ${LastSegUN}.SegID
-$(call Enter-Segment,Verify the helper macros for expecting values and results.)
-# -----
 
 define _help
 Make test suite: ${Seg}.mk
@@ -337,9 +332,3 @@ ${__h} := ${__help}
 endif # help goal message.
 
 $(call End-Declare-Suite)
-
-$(call Exit-Segment)
-else # <u>SegID exists
-$(call Check-Segment-Conflicts)
-endif # <u>SegID
-# -----

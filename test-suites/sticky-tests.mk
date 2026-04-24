@@ -1,11 +1,6 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Test the macros and variables related to Sticky variables.
 #----------------------------------------------------------------------------
-# +++++
-$(call Last-Segment-UN)
-ifndef ${LastSegUN}.SegID
-$(call Enter-Segment,Test the macros and variables related to Sticky variables.)
-# -----
 
 define _help
 Make test suite: ${Seg}.mk
@@ -282,9 +277,3 @@ ${__h} := ${__help}
 endif # help goal message.
 
 $(call End-Declare-Suite)
-
-$(call Exit-Segment)
-else # <u>SegID exists
-$(call Check-Segment-Conflicts)
-endif # <u>SegID
-# -----

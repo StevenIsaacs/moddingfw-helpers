@@ -1,11 +1,6 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # <purpose for this test suite segment>
 #----------------------------------------------------------------------------
-# +++++
-$(call Last-Segment-UN)
-ifndef ${LastSegUN}.SegID
-$(call Enter-Segment,Test segment related macros.)
-# -----
 
 define _help
 Make test suite: ${Seg}.mk
@@ -92,8 +87,8 @@ define ${_macro}
   $(call Enter-Macro,$(0),SegUN=$(1))
   $(call Test-Info,Verifying context for $(1).)
   $(call Expect-Vars,\
-    LastSegUN:$(1) \
-    SegUN:${LastSegUN} \
+    NewSegUN:$(1) \
+    SegUN:${NewSegUN} \
     ${SegUN}.SegUN:${SegUN} \
     SegID:$(words ${MAKEFILE_LIST}) \
     ${SegUN}.SegID:${SegID} \
@@ -579,7 +574,7 @@ define ${.TestUN}
   $(foreach __un,${SegUNs},
     $(call Test-Info,Checking context for seg ${__un}.)
     $(call Display-Seg-Attributes,${__un})
-    $(call Set-Segment-Context,${${__un}.SegID})
+    $(call __Set-Segment-Context,${${__un}.SegID})
     $(foreach __att,${SegAttributes},
       $(if $(or $(call Are-Equal,${__att},SegTL),
                  $(call Are-Equal,${__att},SegHL)),
@@ -589,7 +584,7 @@ define ${.TestUN}
     )
   )
   $(call Test-Info,Restoring context for ${__SegUN} ID ${${__SegUN}.SegID}.)
-  $(call Set-Segment-Context,${${__SegUN}.SegID})
+  $(call __Set-Segment-Context,${${__SegUN}.SegID})
 
   $(call End-Test)
   $(call Exit-Macro)
@@ -620,7 +615,7 @@ define ${.TestUN}
   $(call Test-Info,Segment not in search path.)
   $(call Expect-Warning,Segment ts1 not found.)
   $(call Expect-Error,Segment ts1 could not be found.)
-  $(call Use-Segment,ts1)
+  $(call Use-Segment,ts1,,Included as a test.)
   $(call Verify-Error)
   $(call Verify-Warning)
 
@@ -631,7 +626,7 @@ define ${.TestUN}
 
   $(call Expect-No-Warning)
   $(call Expect-No-Error)
-  $(call Use-Segment,ts1)
+  $(call Use-Segment,ts1,,Included as a test.)
   $(call Verify-No-Error)
   $(call Verify-No-Warning)
 
@@ -641,16 +636,16 @@ define ${.TestUN}
 
   $(call Expect-No-Warning)
   $(call Expect-No-Error)
-  $(call Use-Segment,ts2)
+  $(call Use-Segment,ts2,,Included as a test.)
   $(call Verify-No-Error)
   $(call Verify-No-Warning)
 
   $(call Verify-Current-Context,__save)
 
   $(call Test-Info,Attempt to use same segment twice.)
-  $(call Expect-Message,Segment ts2 is already loaded.)
+  $(call Expect-Message,Segment test-segs.ts2 is already loaded.)
   $(call Expect-No-Error)
-  $(call Use-Segment,ts2)
+  $(call Use-Segment,ts2,,Included as a test.)
   $(call Verify-No-Error)
   $(call Verify-Message)
 
@@ -659,7 +654,7 @@ define ${.TestUN}
   $(call Test-Info,Segments in subdirectories.)
   $(call Expect-No-Warning)
   $(call Expect-No-Error)
-  $(call Use-Segment,d1/td1)
+  $(call Use-Segment,d1/td1,,Included as a test.)
   $(call Verify-No-Error)
   $(call Verify-No-Warning)
 
@@ -667,7 +662,7 @@ define ${.TestUN}
 
   $(call Expect-No-Warning)
   $(call Expect-No-Error)
-  $(call Use-Segment,d2/td2)
+  $(call Use-Segment,d2/td2,,Included as a test.)
   $(call Verify-No-Error)
   $(call Verify-No-Warning)
 
@@ -675,7 +670,7 @@ define ${.TestUN}
 
   $(call Expect-No-Warning)
   $(call Expect-No-Error)
-  $(call Use-Segment,d2/sd2/tsd2)
+  $(call Use-Segment,d2/sd2/tsd2,,Included as a test.)
   $(call Verify-No-Error)
   $(call Verify-No-Warning)
 
@@ -684,7 +679,7 @@ define ${.TestUN}
   $(call Test-Info,Segments which use other segments in their directory.)
   $(call Expect-No-Warning)
   $(call Expect-No-Error)
-  $(call Use-Segment,ts3)
+  $(call Use-Segment,ts3,,Included as a test.)
   $(call Verify-No-Error)
   $(call Verify-No-Warning)
 
@@ -696,12 +691,13 @@ define ${.TestUN}
     test-segs.ts3.SegF=test-segs/ts3.mk\
     )
 
-  $(call Expect-Message,\
-    Segment ${CorePath}/${test-segs.ts3.SegF} is already loaded.)
+  $(call Test-Info,Same UN handling. Expecting: test-segs.ts3.)
+  $(call Expect-Warning,\
+    Segment test-segs.ts3 is already loaded.)
   $(call Expect-No-Error)
-  $(call Use-Segment,${CorePath}/${test-segs.ts3.SegF})
+  $(call Use-Segment,${CorePath}/${test-segs.ts3.SegF},,Included as a test.)
   $(call Verify-No-Error)
-  $(call Verify-Message)
+  $(call Verify-Warning)
 
   $(call Verify-Current-Context,__save)
 
@@ -726,9 +722,3 @@ ${__h} := ${__help}
 endif # help goal message.
 
 $(call End-Declare-Suite)
-
-$(call Exit-Segment)
-else # <u>SegID exists
-$(call Check-Segment-Conflicts)
-endif # <u>SegID
-# -----

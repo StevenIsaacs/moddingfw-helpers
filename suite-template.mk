@@ -2,9 +2,9 @@
 # <purpose for this test suite segment>
 #----------------------------------------------------------------------------
 # +++++
-$(call Last-Segment-UN)
-ifndef ${LastSegUN}.SegID
-$(call Enter-Segment,<purpose for this test suite segment>.)
+# Optional wrapper to avoid initializing twice.
+ifndef ${SegUN}.Initialized
+${SegUN}.Initialized := 1
 # -----
 
 define _help
@@ -62,8 +62,7 @@ endif # help goal message.
 
 $(call End-Declare-Suite)
 
-$(call Exit-Segment)
-else # <u>SegID exists
-$(call Check-Segment-Conflicts)
-endif # <u>SegID
+else # Seg exists
+$(call Info: ${SegUN} already initialized.)
+endif # SegUN
 # -----

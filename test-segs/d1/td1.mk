@@ -1,11 +1,6 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # For test only.
 #----------------------------------------------------------------------------
-# +++++
-$(call Last-Segment-UN)
-ifndef ${LastSegUN}.SegID
-$(call Enter-Segment,For test only.)
-# -----
 
 $(call Test-Info,Path:$(call Last-Segment-Path))
 $(call Verify-Seg-Context,d1.td1)
@@ -26,8 +21,3 @@ Command line goals:
 endef
 ${__h} := ${__help}
 endif
-$(call Exit-Segment)
-else
-$(call Check-Segment-Conflicts)
-endif # SegID
-# -----

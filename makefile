@@ -25,7 +25,7 @@ $(call Enable-Log-File)
 $(call Info,CorePath: ${CorePath})
 $(call Info,CoreVar: ${CoreVar})
 
-$(call Use-Segment,test-helpers,)
+$(call Use-Segment,test-helpers,,Included for testing.)
 
 $(call Run-Suites,${SUITES_PATH},${CASES})
 

@@ -1,11 +1,6 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # For test only.
 #----------------------------------------------------------------------------
-# +++++
-$(call Last-Segment-UN)
-ifndef ${LastSegUN}.SegID
-$(call Enter-Segment,For test only.)
-# -----
 
 $(call Info,${SegUN}:Path:$(call Last-Segment-Path))
 $(call Verify-Seg-Context,test-segs.ts3)
@@ -14,7 +9,7 @@ $(call Test-Info,Recursive call to Use-Segment.)
 $(call Expect-Message,Recursive call to macro Use-Segment detected.)
 $(call Expect-No-Warning)
 $(call Expect-No-Error)
-$(call Use-Segment,ts4,)
+$(call Use-Segment,ts4,,Included as a test in ${SegUN}.)
 $(call Verify-No-Error)
 $(call Verify-No-Warning)
 $(call Verify-Message)
@@ -34,8 +29,3 @@ Command line goals:
 endef
 ${__h} := ${__help}
 endif
-$(call Exit-Segment)
-else
-$(call Check-Segment-Conflicts)
-endif # SegID
-# -----

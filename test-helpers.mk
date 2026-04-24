@@ -1,13 +1,6 @@
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Use this to help test macros and variables.
 #-----------------------------------------------------------------------------
-# +++++
-$(call Last-Segment-UN)
-$(call Verbose,$(call Last-Segment-Basename) UN:${LastSegUN})
-ifndef ${LastSegUN}.SegID
-$(call Enter-Segment,\
-  Test helpers for testing makefile segments and macros.)
-# -----
 
 DEFAULT_SUITES_PATH := test-suites
 
@@ -992,7 +985,7 @@ define ${_macro}
         $(call Signal-Error,\
           Suite $(2) has already been added to context ${_ctx}.)
       ,
-        $(call Verbose,Adding suite $(2) to $(1) context.)
+        $(call Verbose,Adding suite $(2) to ${_ctx} context.)
         $(call Inc-Var,${_ctx}.SuiteC)
         $(eval ${_ctx}.SuiteL += $(2))
       )
@@ -1129,13 +1122,12 @@ define ${_macro}
 
   $(call Clear-Errors)
   $(eval .TestUN := $(1))
-  $(eval Self := $(1))
   $(eval .SuiteN := $(call Get-Suite-Name,$(1)))
   $(eval .SuiteID := ${${.SuiteN}.ID})
   $(eval .TestN := $(call Get-Test-Name,$(1)))
   $(eval .TestID := ${${.TestUN}.ID})
   $(call Init-Context-Results)
-  $(eval ${Self}.Running := 1)
+  $(eval ${.TestUN}.Running := 1)
 
   $(call Line)
   $(call Test-Info,Begin test:$(1))
@@ -1152,18 +1144,17 @@ help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0))
-  $(call Test-Info,End test:${Self})
-  $(call Update-Test-Results,Session ${RunContext} ${.SuiteN} ${Self})
-  $(call Report-Test-Results,${Self})
-  $(eval ${Self}.Completed := 1)
-  $(eval ${Self}.Running :=)
+  $(call Test-Info,End test:${.TestUN})
+  $(call Update-Test-Results,Session ${RunContext} ${.SuiteN} ${.TestUN})
+  $(call Report-Test-Results,${.TestUN})
+  $(eval ${.TestUN}.Completed := 1)
+  $(eval ${.TestUN}.Running :=)
   $(eval .SuiteN :=)
   $(eval .SuiteID :=)
   $(eval .TestN :=)
   $(eval .TestID :=)
   $(eval .TestUN :=)
   $(eval .StepC :=)
-  $(eval Self :=)
   $(call Line)
   $(call Exit-Macro)
 endef
@@ -1183,12 +1174,12 @@ $(call Add-Help,${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),Suite=$(1) Msg=$(call To-String,$(2)))
 
+  $(call Verbose,Declaring suite:$(1))
   $(eval .SuiteN := $(1))
-  $(eval Self := $(1))
-  $(call Add-Suite-To-Contexts,Session Declared,${Self})
-  $(eval ${Self}.ID := ${Declared.SuiteC})
-  $(eval .SuiteID := ${${Self}.ID})
-  $(call Declare-Contexts,${Self})
+  $(call Declare-Contexts,${.SuiteN})
+  $(call Add-Suite-To-Contexts,Session Declared,${.SuiteN})
+  $(eval ${.SuiteN}.ID := ${Declared.SuiteC})
+  $(eval .SuiteID := ${${.SuiteN}.ID})
 
   $(call Line)
   $(call Test-Info,++++ $(1):$(2) ++++)
@@ -1207,7 +1198,7 @@ define ${_macro}
   $(call Enter-Macro,$(0))
   $(call Test-Info,---- ${.SuiteN} ----)
   $(eval .SuiteN := )
-  $(eval Self := )
+  $(eval .TestUN := )
   $(call Exit-Macro)
 endef
 
@@ -1273,7 +1264,7 @@ define ${_macro}
         $(call Verbose,Prerequisite suite:${_st})
 
         $(if $(call Is-Not-Defined,${_st}.SegID),
-          $(call Use-Segment,${_st},)
+          $(call Use-Segment,${_st},,Included as a prerequisite.)
         ,
           $(call Verbose,The suite containing ${_prereq} is in use.)
         )
@@ -1392,7 +1383,7 @@ define ${_macro}
     )
     $(if $(filter undefined,$(origin ${_suite}.ID)),
       $(if $(wildcard ${SUITES_PATH}/${_suite}.mk),
-        $(call Use-Segment,${_suite})
+        $(call Use-Segment,${_suite},,Included as part of a run list.)
       ,
         $(call Signal-Error,Test suite does not exist: ${_suite})
       )
@@ -1498,7 +1489,3 @@ Goals:
 endef
 ${__h} := ${__help}
 endif
-$(call Exit-Segment)
-else # SegID exists
-$(call Check-Segment-Conflicts)
-endif # SegID

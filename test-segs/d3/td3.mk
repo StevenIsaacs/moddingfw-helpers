@@ -1,11 +1,6 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # For test only.
 #----------------------------------------------------------------------------
-# +++++
-$(call Last-Segment-UN)
-ifndef ${LastSegUN}.SegID
-$(call Enter-Segment,For test only.)
-# -----
 
 $(call Test-Info,Path:$(call Last-Segment-Path))
 $(call Verify-Seg-Context,d3.td3)
@@ -13,7 +8,7 @@ $(call Verify-Seg-Context,d3.td3)
 $(call Test-Info,Using seg in same directory.)
 $(call Expect-No-Warning)
 $(call Expect-No-Error)
-$(call Use-Segment,tm3)
+$(call Use-Segment,tm3,,Included as a test seg.)
 $(call Verify-No-Error)
 $(call Verify-No-Warning)
 
@@ -21,14 +16,14 @@ $(call Test-Info,\
   Using seg having same name as previously loaded from another directory.)
 $(call Expect-No-Warning)
 $(call Expect-No-Error)
-$(call Use-Segment,tm2)
+$(call Use-Segment,tm2,,Included as a test.)
 $(call Verify-No-Error)
 $(call Verify-No-Warning)
 
 $(call Test-Info,Using seg in subdirectory.)
 $(call Expect-No-Warning)
 $(call Expect-No-Error)
-$(call Use-Segment,sd3/tsd3)
+$(call Use-Segment,sd3/tsd3,,Included as a test.)
 $(call Verify-No-Error)
 $(call Verify-No-Warning)
 
@@ -47,8 +42,3 @@ Command line goals:
 endef
 ${__h} := ${__help}
 endif
-$(call Exit-Segment)
-else
-$(call Check-Segment-Conflicts)
-endif # SegID
-# -----
