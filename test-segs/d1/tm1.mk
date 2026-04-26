@@ -2,8 +2,11 @@
 # For test only.
 #----------------------------------------------------------------------------
 
-$(call Test-Info,Path:$(call Last-Segment-Path))
-$(call Verify-Seg-Context,d1.tm1)
+$(eval __ExpectedUN := ${__TestSeg}.tm1)
+$(call Mark-Step,Verify entry into ${__ExpectedUN})
+
+$(call Info,${SegUN}:Path:$(call Last-Segment-Path))
+$(call __Verify-Seg-Context,${__ExpectedUN})
 
 # +++++
 # Postamble

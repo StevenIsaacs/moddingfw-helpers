@@ -16,7 +16,9 @@ $(call Add-Help,${SegID})
 
 $(call Add-Help-Section,SegTestHelpers,Segment testing helpers.)
 
-_macro := Save-Seg-Lists
+__TestSeg := ${Seg}
+
+_macro := __Save-Seg-Lists
 define _help
 ${_macro}
   Save segment related lists so that tests which modify these lists will not affect other tests. The helper variables SegPaths and SegUNs are reset so that prior tests will not affect the segment tests.
@@ -25,28 +27,31 @@ help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0))
-  $(eval Save.SegPaths := ${SegPaths})
+  $(eval __Saved.SegPaths := ${SegPaths})
   $(eval SegPaths := )
-  $(eval Save.SegUNs := ${SegUNs})
-  $(eval SegUns := )
+  $(eval __Saved.SegUNs := ${SegUNs})
+  $(eval SegUNs := ${__TestSeg})
+  $(eval __Saved.SegUN := ${SegUN})
+  $(eval SegUN := ${__TestSeg})
   $(call Exit-Macro)
 endef
 
-_macro := Reset-Seg-Lists
+_macro := __Reset-Seg-Lists
 define _help
 ${_macro}
-  The helper variables SegPaths and SegUNs are reset so that prior tests will not affect the segment tests. NOTE: This macro should be used only after the lists have been saved using Save-Seg-Lists.
+  The helper variables SegPaths and SegUNs are reset so that prior tests will not affect the segment tests. NOTE: This macro should be used only after the lists have been saved using __Save-Seg-Lists.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0))
   $(eval SegPaths := )
-  $(eval SegUns := )
+  $(eval SegUns := ${__TestSeg})
+  $(eval SegUN := ${__TestSeg})
   $(call Exit-Macro)
 endef
 
-_macro := Restore-Seg-Lists
+_macro := __Restore-Seg-Lists
 define _help
 ${_macro}
   Restore previously saved segment related lists so that tests which modify these lists will not affect other tests. The segments used by the test are also undefined.
@@ -57,24 +62,25 @@ define ${_macro}
   $(call Enter-Macro,$(0))
   $(if ${SegUNs},
     $(call Test-Info,Undefining segments:${SegUNs})
-    $(foreach __un,${SegUNs},
-      $(if $(filter ${__un},${Save.SegUNs}),
-        $(call Warn,Segment ${__un} is in saved list -- not undefining.)
+    $(foreach _un,${SegUNs},
+      $(if $(filter ${_un},${__Saved.SegUNs}),
+        $(call Warn,Segment ${_un} is in saved list -- not undefining.)
       ,
-        $(foreach __att,${SegAttributes},
-          $(eval undefine ${__un}.${__att})
+        $(foreach _att,${SegAttributes},
+          $(eval undefine ${_un}.${_att})
         )
       )
     )
   ,
     $(call Test-Info,No additional segments were used.)
   )
-  $(eval SegPaths := ${Save.SegPaths})
-  $(eval SegUNs := ${Save.SegUNs})
+  $(eval SegPaths := ${__Saved.SegPaths})
+  $(eval SegUNs := ${__Saved.SegUNs})
+  $(eval SegUN := ${__Saved.SegUN})
   $(call Exit-Macro)
 endef
 
-_macro := Verify-Seg-Context
+_macro := __Verify-Seg-Context
 define _help
 ${_macro}
   Verify the segment context immediately after the segment context has been set.
@@ -90,7 +96,7 @@ define ${_macro}
     NewSegUN:$(1) \
     SegUN:${NewSegUN} \
     ${SegUN}.SegUN:${SegUN} \
-    SegID:$(words ${MAKEFILE_LIST}) \
+    SegID:$(words ${SegUNs}) \
     ${SegUN}.SegID:${SegID} \
     ${SegUN}.Seg:${Seg} \
     ${SegUN}.SegV:${SegV} \
@@ -101,7 +107,7 @@ define ${_macro}
   $(call Exit-Macro)
 endef
 
-_macro := Save-Current-Context
+_macro := __Save-Current-Context
 define _help
 ${_macro}
   Save segment context so that changes can be detected.
@@ -112,13 +118,13 @@ help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),Context=$(1))
-  $(foreach __a,${SegAttributes},
-    $(eval $(1).${__a} := ${__a})
+  $(foreach _a,${SegAttributes},
+    $(eval $(1).${_a} := ${_a})
   )
   $(call Exit-Macro)
 endef
 
-_macro := Verify-Current-Context
+_macro := __Verify-Current-Context
 define _help
 ${_macro}
   Check segment context to verify the context as not changed since it was saved.
@@ -129,15 +135,15 @@ help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0),Context=$(1))
-  $(eval __ch := )
-  $(foreach __a,${SegAttributes},
-    $(if $(filter ${$(1).${__a}},${__a}),
+  $(eval _ch := )
+  $(foreach _a,${SegAttributes},
+    $(if $(filter ${$(1).${_a}},${_a}),
     ,
-      $(call Test-Info,Attribute ${__a} has changed!)
-      $(eval __ch := 1)
+      $(call Test-Info,Attribute ${_a} has changed!)
+      $(eval _ch := 1)
     )
   )
-  $(if ${__ch},
+  $(if ${_ch},
     $(call FAIL,Segment context has changed.)
   ,
     $(call PASS,Segment context is unchanged.)
@@ -157,6 +163,7 @@ $(call Declare-Test,Path-To-UN)
 define _help
 ${.TestUN}
   Verify the macro:$(call Get-Test-Name,${.TestUN})
+  The variable SegUN is saved and set to a test value to avoid having to change this test if this segment is moved to a different location.
 endef
 help-${.TestUN} := $(call _help)
 $(call Add-Help,${.TestUN})
@@ -165,29 +172,18 @@ define ${.TestUN}
   $(call Enter-Macro,$(0))
   $(call Begin-Test,$(0))
 
-  $(eval __tp := test1/test2/test3.mk)
-  $(call Expect-No-Error)
-  $(call Path-To-UN,${__tp},__un)
-  $(call Verify-No-Error)
-  $(call Expect-Vars,__un=test2.test3)
+  $(eval _SegUN := ${SegUN})
+  $(eval SegUN := test-seg)
 
-  $(eval __tp := d1/td1.mk)
-  $(call Expect-No-Error)
-  $(call Path-To-UN,${__tp},__un)
-  $(call Verify-No-Error)
-  $(call Expect-Vars,__un=d1.td1)
+  $(eval _tp := test1/test2/test3.mk)
+  $(call Path-To-UN,${_tp},_un)
+  $(call Expect-Vars,_un=${SegUN}.test3)
 
-  $(eval __tp := test-segs/d1)
-  $(call Expect-No-Error)
-  $(call Path-To-UN,${__tp},__un)
-  $(call Verify-No-Error)
-  $(call Expect-Vars,__un=test-segs.d1)
+  $(eval _tp := d1/td1.n.mk)
+  $(call Path-To-UN,${_tp},_un)
+  $(call Expect-Vars,_un=${SegUN}.td1.n)
 
-  $(eval __tp := test-segs/d1/td1.mk)
-  $(call Expect-No-Error)
-  $(call Path-To-UN,${__tp},__un)
-  $(call Verify-No-Error)
-  $(call Expect-Vars,__un=d1.td1)
+  $(eval SegUN := ${_SegUN})
 
   $(call End-Test)
   $(call Exit-Macro)
@@ -206,56 +202,56 @@ define ${.TestUN}
   $(call Begin-Test,$(0))
 
   $(call Test-Info,SegID:${SegID} SegID_Stack:${SegID_Stack})
-  $(call Save-Seg-Lists)
+  $(call __Save-Seg-Lists)
 
-  $(call Test-Info,Testing single paths.)
-  $(eval __tp := nothing)
-  $(call Expect-Error,Segment path ${__tp} does not exist.)
-  $(call Add-Segment-Path,${__tp})
+  $(call Mark-Step,Testing single paths.)
+  $(eval _tp := nothing)
+  $(call Expect-Error,Segment path ${_tp} does not exist.)
+  $(call Add-Segment-Path,${_tp})
   $(call Verify-Error)
 
-  $(if $(filter ${__tp},${SegPaths}),
+  $(if $(filter ${_tp},${SegPaths}),
     $(call FAIL,The segment path should not have been added.)
   ,
     $(call PASS,The segment path was NOT added.)
   )
 
-  $(eval __tp := test-segs)
+  $(eval _tp := test-segs)
   $(call Expect-No-Error)
-  $(call Add-Segment-Path,${__tp})
+  $(call Add-Segment-Path,${_tp})
   $(call Verify-No-Error)
   $(call Test-Info,SegPaths:${SegPaths})
-  $(call Expect-Vars,SegPaths=${__tp})
-  $(if $(filter ${__tp},${SegPaths}),
+  $(call Expect-Vars,SegPaths=${_tp})
+  $(if $(filter ${_tp},${SegPaths}),
     $(call PASS,The segment path was added.)
   ,
     $(call FAIL,The segment path was NOT added.)
   )
 
-  $(call Expect-Warning,Segment path ${__tp} was already added.)
-  $(call Add-Segment-Path,${__tp})
+  $(call Expect-Warning,Segment path ${_tp} was already added.)
+  $(call Add-Segment-Path,${_tp})
   $(call Verify-Warning)
   $(call Test-Info,SegPaths:${SegPaths})
-  $(call Expect-Vars,SegPaths=${__tp})
-  $(if $(filter ${__tp},${SegPaths}),
+  $(call Expect-Vars,SegPaths=${_tp})
+  $(if $(filter ${_tp},${SegPaths}),
     $(call PASS,The segment path was added.)
   ,
     $(call FAIL,The segment path was NOT added.)
   )
 
-  $(eval undefine __tp)
+  $(eval undefine _tp)
 
-  $(call Test-Info,Testing multiple paths.)
-  $(call Reset-Seg-Lists)
+  $(call Mark-Step,Testing multiple paths.)
+  $(call __Restore-Seg-Lists)
 
-  $(eval __tp1 := test-segs)
-  $(eval __tp2 := test-segs/d1)
+  $(eval _tp1 := test-segs)
+  $(eval _tp2 := test-segs/d1)
   $(call Expect-No-Error)
-  $(call Add-Segment-Path,${__tp1} ${__tp2})
+  $(call Add-Segment-Path,${_tp1} ${_tp2})
   $(call Verify-No-Error)
   $(call Test-Info,SegPaths:${SegPaths})
-  $(call Expect-List,${SegPaths},${__tp1} ${__tp2})
-  $(foreach _p,__tp1 __tp2,
+  $(call Expect-List,${SegPaths},${__Saved.SegPaths} ${_tp1} ${_tp2})
+  $(foreach _p,_tp1 _tp2,
     $(call Test-Info,Checking path:${${_p}})
     $(if $(filter ${${_p}},${SegPaths}),
       $(call PASS,The segment path ${${_p}} was added.)
@@ -263,28 +259,28 @@ define ${.TestUN}
       $(call FAIL,The segment path ${${_p}} was NOT added.)
     )
   )
-  $(call Reset-Seg-Lists)
+  $(call __Restore-Seg-Lists)
 
-  $(eval __tp1 := test-segs)
-  $(eval __tp2 := xxx)
-  $(call Expect-Error,Segment path ${__tp2} does not exist.)
-  $(call Add-Segment-Path,${__tp1} ${__tp2})
+  $(eval _tp1 := test-segs)
+  $(eval _tp2 := xxx)
+  $(call Expect-Error,Segment path ${_tp2} does not exist.)
+  $(call Add-Segment-Path,${_tp1} ${_tp2})
   $(call Verify-Error)
   $(call Test-Info,SegPaths:${SegPaths})
-  $(if $(filter ${__tp1},${SegPaths}),
-    $(call PASS,The segment path ${__tp1} was added.)
+  $(if $(filter ${_tp1},${SegPaths}),
+    $(call PASS,The segment path ${_tp1} was added.)
   ,
-    $(call FAIL,The segment path ${__tp1} was NOT added.)
+    $(call FAIL,The segment path ${_tp1} was NOT added.)
   )
-  $(if $(filter ${__tp2},${SegPaths}),
-    $(call FAIL,The segment path ${__tp2} was added.)
+  $(if $(filter ${_tp2},${SegPaths}),
+    $(call FAIL,The segment path ${_tp2} was added.)
   ,
-    $(call PASS,The segment path ${__tp2} was NOT added.)
+    $(call PASS,The segment path ${_tp2} was NOT added.)
   )
 
-  $(eval undefine __tp1)
-  $(eval undefine __tp2)
-  $(call Restore-Seg-Lists)
+  $(eval undefine _tp1)
+  $(eval undefine _tp2)
+  $(call __Restore-Seg-Lists)
   $(call End-Test)
   $(call Exit-Macro)
 endef
@@ -302,48 +298,48 @@ define ${.TestUN}
   $(call Begin-Test,$(0))
   $(call Test-Info,SegID:${SegID} SegID_Stack:${SegID_Stack})
 
-  $(call Save-Seg-Lists)
+  $(call __Save-Seg-Lists)
 
-  $(call Test-Info,Attempt to use segment not in the search paths.)
+  $(call Mark-Step,Attempt to use segment not in the search paths.)
   $(call Expect-No-Error)
   $(call Expect-Warning,Segment ts1 not found.)
-  $(call Find-Segment,ts1,__seg_f)
+  $(call Find-Segment,ts1,_seg_f)
   $(call Verify-Warning)
   $(call Verify-No-Error)
-  $(if ${__seg_f},
+  $(if ${_seg_f},
     $(call FAIL,Find-Segment returned a segment file name.)
   ,
     $(call PASS,Find-Segment did not return a segment file name.)
   )
 
-  $(call Test-Info,Attempt to use segment in search paths.)
+  $(call Mark-Step,Attempt to use segment in search paths.)
   $(call Add-Segment-Path,test-segs)
   $(call Expect-No-Error)
   $(call Expect-No-Warning)
-  $(call Find-Segment,ts1,__seg_f)
+  $(call Find-Segment,ts1,_seg_f)
   $(call Verify-No-Warning)
   $(call Verify-No-Error)
-  $(if ${__seg_f},
+  $(if ${_seg_f},
     $(call PASS,Find-Segment returned a segment file name.)
   ,
     $(call FAIL,Find-Segment did not return a segment file name.)
   )
-  $(call Expect-Vars,__seg_f=test-segs/ts1.mk)
+  $(call Expect-Vars,_seg_f=test-segs/ts1.mk)
 
-  $(call Test-Info,Using partial path relative to a segment path,)
+  $(call Mark-Step,Using partial path relative to a segment path,)
   $(call Expect-No-Error)
   $(call Expect-No-Warning)
-  $(call Find-Segment,d1/td1,__seg_f)
+  $(call Find-Segment,d1/td1,_seg_f)
   $(call Verify-No-Warning)
   $(call Verify-No-Error)
-  $(if ${__seg_f},
+  $(if ${_seg_f},
     $(call PASS,Find-Segment returned a segment file name.)
   ,
     $(call FAIL,Find-Segment did not return a segment file name.)
   )
-  $(call Expect-Vars,__seg_f=test-segs/d1/td1.mk)
+  $(call Expect-Vars,_seg_f=test-segs/d1/td1.mk)
 
-  $(call Restore-Seg-Lists)
+  $(call __Restore-Seg-Lists)
   $(call End-Test)
   $(call Exit-Macro)
 endef
@@ -362,8 +358,8 @@ define ${.TestUN}
 
   $(call Test-Info,SegID:${SegID} SegID_Stack:${SegID_Stack})
 
-  $(eval __SegID := ${SegID})
-  $(eval __SegID_Stack := ${SegID_Stack})
+  $(eval _SegID := ${SegID})
+  $(eval _SegID_Stack := ${SegID_Stack})
   $(eval SegID_Stack := )
 
   $(eval SegID := 1)
@@ -442,8 +438,8 @@ define ${.TestUN}
   )
   $(call Expect-Vars,SegID=1)
 
-  $(eval SegID_Stack := ${__SegID_Stack})
-  $(eval SegID := ${__SegID})
+  $(eval SegID_Stack := ${_SegID_Stack})
+  $(eval SegID := ${_SegID})
   $(call End-Test)
   $(call Exit-Macro)
 endef
@@ -462,8 +458,8 @@ define ${.TestUN}
 
   $(call Test-Info,SegID:${SegID} Macro_Stack:${Macro_Stack})
 
-  $(eval __Caller := ${Caller})
-  $(eval __Macro_Stack := ${Macro_Stack})
+  $(eval _Caller := ${Caller})
+  $(eval _Macro_Stack := ${Macro_Stack})
   $(eval Macro_Stack := )
 
   $(call __Push-Macro,1)
@@ -546,8 +542,8 @@ define ${.TestUN}
   )
   $(call Expect-Vars,Caller=)
 
-  $(eval Macro_Stack := ${__Macro_Stack})
-  $(eval Caller := ${__Caller})
+  $(eval Macro_Stack := ${_Macro_Stack})
+  $(eval Caller := ${_Caller})
   $(call End-Test)
   $(call Exit-Macro)
 endef
@@ -569,22 +565,22 @@ define ${.TestUN}
   $(call Test-Info,SegID:${SegID} SegID_Stack:${SegID_Stack})
 
   $(call Display-Segs)
-  $(eval __SegUN := ${SegUN})
+  $(eval _SegUN := ${SegUN})
 
-  $(foreach __un,${SegUNs},
-    $(call Test-Info,Checking context for seg ${__un}.)
-    $(call Display-Seg-Attributes,${__un})
-    $(call __Set-Segment-Context,${${__un}.SegID})
-    $(foreach __att,${SegAttributes},
-      $(if $(or $(call Are-Equal,${__att},SegTL),
-                 $(call Are-Equal,${__att},SegHL)),
+  $(foreach _un,${SegUNs},
+    $(call Test-Info,Checking context for seg ${_un}.)
+    $(call Display-Seg-Attributes,${_un})
+    $(call __Set-Segment-Context,${${_un}.SegID})
+    $(foreach _att,${SegAttributes},
+      $(if $(or $(call Are-Equal,${_att},SegTL),
+                 $(call Are-Equal,${_att},SegHL)),
       ,
-        $(call Expect-Vars,${__att}=${${__un}.${__att}})
+        $(call Expect-Vars,${_att}=${${_un}.${_att}})
       )
     )
   )
-  $(call Test-Info,Restoring context for ${__SegUN} ID ${${__SegUN}.SegID}.)
-  $(call __Set-Segment-Context,${${__SegUN}.SegID})
+  $(call Test-Info,Restoring context for ${_SegUN} ID ${${_SegUN}.SegID}.)
+  $(call __Set-Segment-Context,${${_SegUN}.SegID})
 
   $(call End-Test)
   $(call Exit-Macro)
@@ -606,20 +602,24 @@ define ${.TestUN}
   $(call Begin-Test,$(0))
   $(call Test-Info,SegID:${SegID} SegID_Stack:${SegID_Stack})
 
-  $(call Save-Seg-Lists)
+  $(call __Save-Seg-Lists)
+  $(call Display-Segs)
 
-  $(call Test-Info,Running test:${.TestUN})
+  $(call Mark-Step,Running test:${.TestUN})
 
-  $(call Save-Current-Context,__save)
+  $(call __Save-Current-Context,_saved)
 
-  $(call Test-Info,Segment not in search path.)
+  $(call Mark-Step,Segment not in search path.)
   $(call Expect-Warning,Segment ts1 not found.)
   $(call Expect-Error,Segment ts1 could not be found.)
   $(call Use-Segment,ts1,,Included as a test.)
   $(call Verify-Error)
   $(call Verify-Warning)
+  $(call Display-Segs)
 
-  $(call Test-Info,Adding a search path.)
+  $(call __Reset-Seg-Lists)
+
+  $(call Mark-Step,Adding a search path -- verify can use ts1.)
   $(call Add-Segment-Path,test-segs)
 
   $(call Test-Info,SegPaths:${SegPaths})
@@ -629,9 +629,14 @@ define ${.TestUN}
   $(call Use-Segment,ts1,,Included as a test.)
   $(call Verify-No-Error)
   $(call Verify-No-Warning)
+  $(call Display-Segs)
 
-  $(call Verify-Current-Context,__save)
+  $(call __Verify-Current-Context,_saved)
 
+  $(call __Reset-Seg-Lists)
+  $(call Add-Segment-Path,test-segs)
+
+  $(call Mark-Step,Verify can use ts2 with existing search path.)
   $(call Test-Info,SegPaths:${SegPaths})
 
   $(call Expect-No-Warning)
@@ -639,69 +644,79 @@ define ${.TestUN}
   $(call Use-Segment,ts2,,Included as a test.)
   $(call Verify-No-Error)
   $(call Verify-No-Warning)
+  $(call Display-Segs)
 
-  $(call Verify-Current-Context,__save)
+  $(call __Verify-Current-Context,_saved)
 
-  $(call Test-Info,Attempt to use same segment twice.)
-  $(call Expect-Message,Segment test-segs.ts2 is already loaded.)
+  $(call Mark-Step,Attempt to use same segment twice.)
+  $(call Expect-Message,Segment makefile.ts2 is already loaded.)
   $(call Expect-No-Error)
   $(call Use-Segment,ts2,,Included as a test.)
   $(call Verify-No-Error)
   $(call Verify-Message)
+  $(call Display-Segs)
 
-  $(call Verify-Current-Context,__save)
+  $(call __Verify-Current-Context,_saved)
 
-  $(call Test-Info,Segments in subdirectories.)
+  $(call __Reset-Seg-Lists)
+  $(call Add-Segment-Path,test-segs)
+
+  $(call Mark-Step,Segments in subdirectories.)
   $(call Expect-No-Warning)
   $(call Expect-No-Error)
   $(call Use-Segment,d1/td1,,Included as a test.)
   $(call Verify-No-Error)
   $(call Verify-No-Warning)
+  $(call Display-Segs)
 
-  $(call Verify-Current-Context,__save)
+  $(call __Verify-Current-Context,_saved)
 
   $(call Expect-No-Warning)
   $(call Expect-No-Error)
   $(call Use-Segment,d2/td2,,Included as a test.)
   $(call Verify-No-Error)
   $(call Verify-No-Warning)
+  $(call Display-Segs)
 
-  $(call Verify-Current-Context,__save)
+  $(call __Verify-Current-Context,_saved)
 
   $(call Expect-No-Warning)
   $(call Expect-No-Error)
   $(call Use-Segment,d2/sd2/tsd2,,Included as a test.)
   $(call Verify-No-Error)
   $(call Verify-No-Warning)
+  $(call Display-Segs)
 
-  $(call Verify-Current-Context,__save)
+  $(call __Verify-Current-Context,_saved)
 
-  $(call Test-Info,Segments which use other segments in their directory.)
+  $(call Mark-Step,Segments which use other segments in their directory.)
   $(call Expect-No-Warning)
   $(call Expect-No-Error)
   $(call Use-Segment,ts3,,Included as a test.)
   $(call Verify-No-Error)
   $(call Verify-No-Warning)
+  $(call Display-Segs)
 
-  $(call Verify-Current-Context,__save)
+  $(call __Verify-Current-Context,_saved)
 
-  $(call Test-Info,Full segment path (no find).)
+  $(call Mark-Step,Full segment path (no find).)
   $(call Expect-Vars,\
-    test-segs.ts3.SegP=${CorePath}/test-segs\
-    test-segs.ts3.SegF=test-segs/ts3.mk\
+    makefile.ts3.SegP=${CorePath}/test-segs\
+    makefile.ts3.SegF=test-segs/ts3.mk\
     )
 
-  $(call Test-Info,Same UN handling. Expecting: test-segs.ts3.)
+  $(call Mark-Step,Same UN handling. Expecting: makefile.ts3.)
   $(call Expect-Warning,\
-    Segment test-segs.ts3 is already loaded.)
+    Segment makefile.ts3 is already loaded.)
   $(call Expect-No-Error)
-  $(call Use-Segment,${CorePath}/${test-segs.ts3.SegF},,Included as a test.)
+  $(call Use-Segment,${CorePath}/${makefile.ts3.SegF},,Included as a test.)
   $(call Verify-No-Error)
   $(call Verify-Warning)
+  $(call Display-Segs)
 
-  $(call Verify-Current-Context,__save)
+  $(call __Verify-Current-Context,_saved)
 
-  $(call Restore-Seg-Lists)
+  $(call __Restore-Seg-Lists)
   $(call End-Test)
   $(call Exit-Macro)
 endef
@@ -709,16 +724,16 @@ endef
 # +++++
 # Postamble
 # Define help only if needed.
-__h := \
+_h := \
   $(or \
     $(call Is-Goal,help-${Seg}),\
     $(call Is-Goal,help-${SegUN}),\
     $(call Is-Goal,help-${SegID}))
-ifneq (${__h},)
-define __help
+ifneq (${_h},)
+define _help
 $(call Display-Help-List,${SegID})
 endef
-${__h} := ${__help}
+${_h} := ${_help}
 endif # help goal message.
 
 $(call End-Declare-Suite)

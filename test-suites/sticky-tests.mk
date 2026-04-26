@@ -36,7 +36,7 @@ define ${.TestUN}
   $(call Enter-Macro,$(0))
   $(call Begin-Test,$(0))
 
-  $(call Test-Info,Verifying existing sticky variables.)
+  $(call Mark-Step,Verifying existing sticky variables.)
   $(foreach _vn,CASES SUITES_PATH,
     $(eval _tmp := $(file <${STICKY_PATH}/${_vn}))
     $(call Test-Info,Verifying "${_vn}" equals "${${_vn}}".)
@@ -55,13 +55,13 @@ define ${.TestUN}
     )
   )
 
-  $(call Test-Info,Creating a new sticky variable using default.)
+  $(call Mark-Step,Creating a new sticky variable using default.)
   $(eval _vn1 := sticky1)
   $(eval _vv1 := default)
   $(call Sticky,${_vn1},${_vv1})
   $(if $(wildcard ${STICKY_PATH}/${_vn1}),
     $(call PASS,Sticky var ${_vn1} exists.)
-    $(call Test-Info,Checking variable contents.)
+    $(call Mark-Step,Checking variable contents.)
     $(eval _tmp := $(file <${STICKY_PATH}/${_vn1}))
     $(call Expect-String,${_vv1},${_tmp})
     $(if $(filter ${_vn1},${StickyVars}),
@@ -73,18 +73,18 @@ define ${.TestUN}
     $(call FAIL,Sticky var ${_vn1} was not created.)
   )
 
-  $(call Test-Info,Verify redefinition warning.)
+  $(call Mark-Step,Verify redefinition warning.)
   $(call Expect-Warning,Redefinition of sticky variable ${_vn1} ignored.)
   $(call Sticky,${_vn1},Redefined)
   $(call Verify-Warning)
 
-  $(call Test-Info,Verify NO redefinition warning.)
+  $(call Mark-Step,Verify NO redefinition warning.)
   $(eval _vn2 := sticky2)
   $(call Expect-No-Warning)
   $(call Sticky,${_vn2},new)
   $(call Verify-No-Warning)
 
-  $(call Test-Info,New sticky -- no default.)
+  $(call Mark-Step,New sticky -- no default.)
   $(eval _vn3 := sticky3)
   $(eval _vv3 := new ${_vn3})
   $(call Sticky,${_vn3}=${_vv3})
@@ -102,7 +102,7 @@ define ${.TestUN}
     $(call FAIL,Sticky var ${_vn3} was not created.)
   )
 
-  $(call Test-Info,Existing sticky -- get existing value.)
+  $(call Mark-Step,Existing sticky -- get existing value.)
   $(eval _vn4 := sticky4)
   $(eval _vv4 := existing_${_vn4})
   $(file >${STICKY_PATH}/${_vn4},${_vv4})
@@ -121,7 +121,7 @@ define ${.TestUN}
     $(call FAIL,Sticky var ${_vn4} was not created.)
   )
 
-  $(call Test-Info,Existing sticky -- new value.)
+  $(call Mark-Step,Existing sticky -- new value.)
   $(eval _vn5 := sticky5)
   $(file >${STICKY_PATH}/${_vn5},existing ${_vn5})
   $(eval _vv5 := new ${_vn5})
@@ -236,23 +236,24 @@ define ${.TestUN}
   $(foreach _f,$(wildcard ${STICKY_PATH}/*),
     $(call Test-Info,Var file:${_f})
   )
-  $(call Test-Info,Sticky vars:${StickyVars})
+  $(call Mark-Step,Sticky vars:${StickyVars})
   $(eval VERBOSE=1)
   $(call Sticky,${_vn1}=${_vn1v})
   $(eval VERBOSE=)
+
+  $(call Mark-Step,Verifying ${_vn1} = "${_vn1v}")
   $(call Expect-Vars,${_vn1}:${_vn1v},:)
   $(call Test-Info,Sticky vars:${StickyVars})
   $(foreach _f,$(wildcard ${STICKY_PATH}/*),
     $(call Test-Info,Var file:${_f})
   )
-  $(call Test-Info,Verifying ${_vn1} = "${_vn1v}")
 
-  $(call Test-Info,Verify sticky variable has been removed.)
+  $(call Mark-Step,Verify can remove sticky variable.)
   $(call Expect-No-Error)
   $(call Remove-Sticky,${_vn1})
   $(call Verify-No-Error)
 
-  $(call Test-Info,Verify sticky variable has been removed.)
+  $(call Mark-Step,Verify sticky variable has been removed.)
   $(call Expect-Error,Var ${_vn1} has not been defined.)
   $(call Remove-Sticky,${_vn1})
   $(call Verify-Error)

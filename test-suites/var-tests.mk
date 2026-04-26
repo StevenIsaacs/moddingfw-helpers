@@ -256,6 +256,8 @@ ${.TestUN}.Prereqs :=
 define ${.TestUN}
   $(call Enter-Macro,$(0))
   $(call Begin-Test,$(0))
+
+  $(call Mark-Step,Verify detection of undefined variable.)
   $(eval _v := not-defined)
   $(call Test-Info,Var _v is: $(flavor ${_v}))
   $(eval _r := $(call Is-Not-Defined,${_v}))
@@ -265,6 +267,8 @@ define ${.TestUN}
   ,
     $(call FAIL,Is-Not-Defined says "${_v}" is defined.)
   )
+
+  $(call Mark-Step,Verify detection of defined variable.)
   $(eval _v := is-defined)
   $(eval ${_v} :=)
   $(call Test-Info,Var _v is: $(flavor ${_v}))
@@ -300,6 +304,7 @@ define ${.TestUN}
   $(eval _c :=)
   $(eval _d :=)
 
+  $(call Mark-Step,Verify required variables exist.)
   $(eval _u := $(call Require,_a _b _c _d))
   $(if ${_u},
     $(call FAIL,Require returned:${_u})
@@ -307,6 +312,7 @@ define ${.TestUN}
     $(call PASS,Require returned an empty list.)
   )
 
+  $(call Mark-Step,Verify required variable _z does not exist.)
   $(eval _u := $(call Require,_a _x _z _d))
   $(call Test-Info,Require returned:${_u})
   $(if ${_u},
@@ -320,6 +326,7 @@ define ${.TestUN}
   $(eval undefine _c)
   $(eval undefine _d)
 
+  $(call Mark-Step,Verify list of required variables no longer not exist.)
   $(eval _u := $(call Require,_a _b _c _d))
   $(call Test-Info,Require returned:${_u})
   $(if ${_u},
@@ -347,7 +354,8 @@ define ${.TestUN}
 
   $(eval _s1 := abc)
   $(eval _s2 := abc)
-  $(call Test-Info,Comparing: "${_s1}" and "${_s2}")
+
+  $(call Mark-Step,Comparing: "${_s1}" and "${_s2}")
   $(call Compare-Strings,_s1,_s2,_r)
   $(if ${_r},
     $(call FAIL,Strings _s1 and _s2 should have been the same.)
@@ -356,7 +364,7 @@ define ${.TestUN}
   )
 
   $(eval _s1 := xxx)
-  $(call Test-Info,Comparing: "${_s1}" and "${_s2}")
+  $(call Mark-Step,Comparing: "${_s1}" and "${_s2}")
   $(call Compare-Strings,_s1,_s2,_r)
   $(if ${_r},
     $(call PASS,Strings _s1 and _s2 are not the same.)
@@ -366,7 +374,7 @@ define ${.TestUN}
 
   $(eval _s1 := abc def)
   $(eval _s2 := abc def)
-  $(call Test-Info,Comparing: "${_s1}" and "${_s2}")
+  $(call Mark-Step,Comparing: "${_s1}" and "${_s2}")
   $(call Compare-Strings,_s1,_s2,_r)
   $(if ${_r},
     $(call FAIL,Strings _s1 and _s2 should have been the same.)
@@ -375,7 +383,7 @@ define ${.TestUN}
   )
 
   $(eval _s1 := abc xxx)
-  $(call Test-Info,Comparing: "${_s1}" and "${_s2}")
+  $(call Mark-Step,Comparing: "${_s1}" and "${_s2}")
   $(call Compare-Strings,_s1,_s2,_r)
   $(if ${_r},
     $(call PASS,Strings _s1 and _s2 are not the same.)
@@ -384,7 +392,7 @@ define ${.TestUN}
   )
 
   $(eval _s1 := abc)
-  $(call Test-Info,Comparing: "${_s1}" and "${_s2}")
+  $(call Mark-Step,Comparing: "${_s1}" and "${_s2}")
   $(call Compare-Strings,_s1,_s2,_r)
   $(if ${_r},
     $(if $(filter d,$(word 1,${_r})),
@@ -403,7 +411,7 @@ define ${.TestUN}
 
   $(eval _s1 := abc def)
   $(eval _s2 := abc)
-  $(call Test-Info,Comparing: "${_s1}" and "${_s2}")
+  $(call Mark-Step,Comparing: "${_s1}" and "${_s2}")
   $(call Compare-Strings,_s1,_s2,_r)
   $(if ${_r},
     $(if $(filter d,$(word 1,${_r})),
@@ -422,7 +430,7 @@ define ${.TestUN}
 
   $(eval _s1 := This is a line.)
   $(eval _s2 := This is a line.)
-  $(call Test-Info,Comparing: "${_s1}" and "${_s2}".)
+  $(call Mark-Step,Comparing: "${_s1}" and "${_s2}".)
   $(call Compare-Strings,_s1,_s2,_r)
   $(if ${_r},
     $(call FAIL,Strings _s1 and _s2 should have been the same.)
@@ -431,7 +439,7 @@ define ${.TestUN}
   )
 
   $(eval _s1 := this is a line.)
-  $(call Test-Info,Comparing: "${_s1}" and "${_s2}".)
+  $(call Mark-Step,Comparing: "${_s1}" and "${_s2}".)
   $(call Compare-Strings,_s1,_s2,_r)
   $(if ${_r},
     $(call PASS,Strings _s1 and _s2 are not the same.)
@@ -440,7 +448,7 @@ define ${.TestUN}
   )
 
   $(eval _s1 := This is a line)
-  $(call Test-Info,Comparing: "${_s1}" and "${_s2}".)
+  $(call Mark-Step,Comparing: "${_s1}" and "${_s2}".)
   $(call Compare-Strings,_s1,_s2,_r)
   $(if ${_r},
     $(call PASS,Strings _s1 and _s2 are not the same.)

@@ -272,7 +272,9 @@ endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
-  $(call Log-Message,step,.... $(1))
+  $(call Line)
+  $(call Info,__________ TEST ___________)
+  $(call Log-Message,STEP,$(1))
 endef
 
 $(call Add-Help-Section,TestLogging,Logging test results.)
@@ -465,12 +467,12 @@ help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
   $(if $(2),
-    $(eval __d := $(2))
+    $(eval _d := $(2))
   ,
-    $(eval __d := =)
+    $(eval _d := =)
   )
   $(foreach _e,$(1),
-    $(eval _ve := $(subst ${__d},${Space},${_e}))
+    $(eval _ve := $(subst ${_d},${Space},${_e}))
     $(call Verbose,(${_ve}) Expecting:($(word 1,${_ve}))=($(word 2,${_ve})))
     $(call Verbose,Actual:(${$(word 1,${_ve})}))
     $(eval Differences := )
@@ -507,9 +509,9 @@ $(call Add-Help,${_macro})
 define ${_macro}
   $(call Test-Info,Expecting:$(1))
   $(call Test-Info,Actual:$(2))
-  $(eval __le := $(words $(1)))
-  $(eval __la := $(words $(2)))
-  $(if $(filter ${__le},${__la}),
+  $(eval _le := $(words $(1)))
+  $(eval _la := $(words $(2)))
+  $(if $(filter ${_le},${_la}),
     $(eval _index := 0)
     $(eval Differences := )
     $(foreach _w,$(1),

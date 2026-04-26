@@ -2,10 +2,13 @@
 # For test only.
 #----------------------------------------------------------------------------
 
-$(call Info,${SegUN}:Path:$(call Last-Segment-Path))
-$(call Verify-Seg-Context,test-segs.ts3)
+$(eval __ExpectedUN := ${__TestSeg}.ts3)
+$(call Mark-Step,Verify entry into ${__ExpectedUN})
 
-$(call Test-Info,Recursive call to Use-Segment.)
+$(call Info,${SegUN}:Path:$(call Last-Segment-Path))
+$(call __Verify-Seg-Context,${__ExpectedUN})
+
+$(call Mark-Step,Recursive call to Use-Segment.)
 $(call Expect-Message,Recursive call to macro Use-Segment detected.)
 $(call Expect-No-Warning)
 $(call Expect-No-Error)

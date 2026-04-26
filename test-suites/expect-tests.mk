@@ -37,7 +37,7 @@ define ${.TestUN}
   $(eval _v3 := 3)
   $(call Expect-Vars,_v1=1 _v2=2 _v3=3)
 
-  $(call Test-Info,Using delimiter override.)
+  $(call Mark-Step,Using delimiter override.)
   $(call Expect-Vars,_v1:1 _v2:2 _v3:3,:)
 
   $(eval _v1 := abc)
@@ -97,15 +97,15 @@ define ${.TestUN}
   $(call PASS,This should PASS:PASS.)
   $(call Verbose,ExpectedResultsL:${ExpectedResultsL})
   $(if ${.Failed},
-    $(call Test-Info,Test has already failed -- skipping FAIL reset.)
+    $(call Mark-Step,Test has already failed -- skipping FAIL reset.)
     $(call FAIL,This should FAIL:PASS.)
   ,
     $(call FAIL,This should FAIL:PASS.)
     $(if ${.Failed},
-      $(call Test-Info,FAIL was expected${Comma} resetting .Failed.)
+      $(call Mark-Step,FAIL was expected${Comma} resetting .Failed.)
       $(call Undo-FAIL)
     ,
-      $(call Test-Info,Expected a FAIL but the step passed.)
+      $(call Mark-Step,Expected a FAIL but the step passed.)
       $(call Record-FAIL)
     )
   )
@@ -113,15 +113,15 @@ define ${.TestUN}
   $(call FAIL,This should PASS:FAIL.)
   $(call Verbose,ExpectedResultsL:${ExpectedResultsL})
   $(if ${.Failed},
-    $(call Test-Info,Test has already failed -- skipping FAIL reset.)
+    $(call Mark-Step,Test has already failed -- skipping FAIL reset.)
     $(call PASS,This should FAIL:FAIL.)
   ,
     $(call PASS,This should FAIL:FAIL.)
     $(if ${.Failed},
-      $(call Test-Info,FAIL was expected${Comma} resetting .Failed.)
+      $(call Mark-Step,FAIL was expected${Comma} resetting .Failed.)
       $(call Undo-FAIL)
     ,
-      $(call Test-Info,Expected a FAIL but the step passed.)
+      $(call Mark-Step,Expected a FAIL but the step passed.)
       $(call Record-FAIL)
     )
   )
@@ -207,7 +207,7 @@ define ${.TestUN}
   $(call Enter-Macro,$(0))
   $(call Begin-Test,$(0))
 
-  $(call Test-Info,Verifying match for a message.)
+  $(call Mark-Step,Verifying match for a message.)
   $(eval __m := This should PASS.)
   $(call Expect-Message,${__m})
   $(call Info,${__m})
@@ -224,7 +224,7 @@ define ${.TestUN}
     $(call FAIL,Message was found ${MatchCount} time.)
   )
   $(if ${MismatchFound},
-    $(call Test-Info,MismatchList=${MismatchList})
+    $(call Mark-Step,MismatchList=${MismatchList})
     $(call FAIL,MismatchFound is TRUE.)
   ,
     $(call PASS,MismatchFound is FALSE.)
@@ -236,12 +236,12 @@ define ${.TestUN}
   )
 
 
-  $(call Test-Info,Verifying no matching messages.)
+  $(call Mark-Step,Verifying no matching messages.)
   $(call Expect-Message,${__m})
   $(call Info,This should FAIL.)
   $(call Set-Expected-Results,FAIL)
   $(call Verify-Message)
-  $(call Test-Info,Mismatch list:${MismatchList})
+  $(call Mark-Step,Mismatch list:${MismatchList})
   $(if ${MatchFound},
     $(call FAIL,MatchFound is TRUE.)
   ,
@@ -263,7 +263,7 @@ define ${.TestUN}
     $(call FAIL,Message was found ${MismatchFound} time.)
   )
 
-  $(call Test-Info,Verifying multiple matches.)
+  $(call Mark-Step,Verifying multiple matches.)
   $(eval __m := This should match.)
 
   $(call Expect-Message,${__m})
