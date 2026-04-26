@@ -1660,7 +1660,7 @@ define ${_macro}
   $(call Exit-Macro)
 endef
 
-_macro := __Init-Makefile-Context
+_macro := __Init-First-Segment-Context
 define _help
 ${_macro}
   Initialize the segment context for the segment in MAKEFILE_LIST which included the helpers segment. This should be called before any other segment related macros are used. Helpers MUST be the second item in MAKEFILE_LIST.
@@ -2195,7 +2195,7 @@ $(call Verbose,MAKEFILE_LIST:${MAKEFILE_LIST})
 $(call Verbose,$(realpath $(firstword ${MAKEFILE_LIST})))
 $(call Verbose,_i:$(call __New-Segment-ID))
 # Initialize the top level context.
-$(call __Init-Makefile-Context,${MakeTL})
+$(call __Init-First-Segment-Context,${MakeTL})
 
 # Init the attributes and set context for self (helpers).
 _segf := $(call Last-Segment-File)

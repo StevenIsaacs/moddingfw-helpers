@@ -16,7 +16,7 @@ $(call Add-Help,${SegID})
 
 $(call Add-Help-Section,SegTestHelpers,Segment testing helpers.)
 
-__TestSeg := ${Seg}
+__TestSeg := testing-seg
 
 _macro := __Save-Seg-Lists
 define _help
@@ -27,39 +27,22 @@ help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
   $(call Enter-Macro,$(0))
+  $(eval __Saved,MAKEFILE_LIST := ${MAKEFILE_LIST})
+  $(eval __Saved.FirstSegUN := ${FirstSegUN})
   $(eval __Saved.SegPaths := ${SegPaths})
-  $(eval SegPaths := )
   $(eval __Saved.SegUNs := ${SegUNs})
-  $(eval SegUNs := ${__TestSeg})
   $(eval __Saved.SegUN := ${SegUN})
-  $(eval SegUN := ${__TestSeg})
   $(call Exit-Macro)
 endef
 
-_macro := __Reset-Seg-Lists
+_macro := __Undefine-Segments
 define _help
 ${_macro}
-  The helper variables SegPaths and SegUNs are reset so that prior tests will not affect the segment tests. NOTE: This macro should be used only after the lists have been saved using __Save-Seg-Lists.
+  Undefine any segments which were declared for testing.
 endef
 help-${_macro} := $(call _help)
 $(call Add-Help,${_macro})
 define ${_macro}
-  $(call Enter-Macro,$(0))
-  $(eval SegPaths := )
-  $(eval SegUns := ${__TestSeg})
-  $(eval SegUN := ${__TestSeg})
-  $(call Exit-Macro)
-endef
-
-_macro := __Restore-Seg-Lists
-define _help
-${_macro}
-  Restore previously saved segment related lists so that tests which modify these lists will not affect other tests. The segments used by the test are also undefined.
-endef
-help-${_macro} := $(call _help)
-$(call Add-Help,${_macro})
-define ${_macro}
-  $(call Enter-Macro,$(0))
   $(if ${SegUNs},
     $(call Test-Info,Undefining segments:${SegUNs})
     $(foreach _un,${SegUNs},
@@ -74,9 +57,43 @@ define ${_macro}
   ,
     $(call Test-Info,No additional segments were used.)
   )
+endef
+
+_macro := __Reset-Seg-Lists
+define _help
+${_macro}
+  The helper variables SegPaths and SegUNs are reset so that prior tests will not affect the segment tests. NOTE: This macro should be used only after the lists have been saved using __Save-Seg-Lists.
+endef
+help-${_macro} := $(call _help)
+$(call Add-Help,${_macro})
+define ${_macro}
+  $(call Enter-Macro,$(0))
+  $(call Test-Info,MAKEFILE_LIST is: ${MAKEFILE_LIST})
+  $(call __Undefine-Segments)
+  $(eval MAKEFILE_LIST := ${__TestSeg})
+  $(call Test-Info,MAKEFILE_LIST reset to: ${MAKEFILE_LIST})
+  $(eval FirstSegUN := ${__TestSeg})
+  $(eval SegPaths := )
+  $(eval SegUNs := ${__TestSeg})
+  $(eval SegUN := ${__TestSeg})
+  $(call __Init-First-Segment-Context,For testing using segments.)
+  $(call Exit-Macro)
+endef
+
+_macro := __Restore-Seg-Lists
+define _help
+${_macro}
+  Restore previously saved segment related lists so that tests which modify these lists will not affect other tests. The segments used by the test are also undefined.
+endef
+help-${_macro} := $(call _help)
+$(call Add-Help,${_macro})
+define ${_macro}
+  $(call Enter-Macro,$(0))
+  $(call __Undefine-Segments)
   $(eval SegPaths := ${__Saved.SegPaths})
   $(eval SegUNs := ${__Saved.SegUNs})
   $(eval SegUN := ${__Saved.SegUN})
+  $(eval FirstSegUN := $(__Saved.FirstSegUN))
   $(call Exit-Macro)
 endef
 
@@ -604,6 +621,7 @@ define ${.TestUN}
 
   $(call __Save-Seg-Lists)
   $(call Display-Segs)
+  $(call __Reset-Seg-Lists)
 
   $(call Mark-Step,Running test:${.TestUN})
 
