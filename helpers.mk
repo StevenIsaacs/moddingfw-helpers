@@ -2199,7 +2199,7 @@ $(call __Init-First-Segment-Context,${MakeTL})
 
 # Init the attributes and set context for self (helpers).
 _segf := $(call Last-Segment-File)
-$(call Path-To-UN,${_segf}, NewSegUN)
+$(call Path-To-UN,${_segf},NewSegUN)
 $(eval NewSegF := ${_segf})
 $(call __Declare-New-Segment,Helper macros and variables.)
 $(call __Enter-New-Segment)
