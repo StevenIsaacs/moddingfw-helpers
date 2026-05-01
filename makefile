@@ -1,6 +1,10 @@
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Test the helpers.
 #----------------------------------------------------------------------------
+# NOTE: This makefile is used to run test suites for testing the helpers and the
+# test helpers. It is not intended to be a top level makefile for a ModdingFW
+# project. It therefore does not contain the normal targets such as build,
+# clean, etc. It only contains the test goal and the help goal.
 #DEBUG=1
 
 TmpTestPath := ${CURDIR}/tmp/test-helpers
