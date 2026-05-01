@@ -38,7 +38,6 @@ endef
 ${__h} := ${__help}
 endif # help goal message.
 
-$(call Exit-Segment)
 else # Seg exists
 $(call Info: ${SegUN} already initialized.)
 endif # SegUN
